@@ -1,8 +1,15 @@
 class Timetable
   BASE_TIMETABLE_URL = "http://www.education.gov.uk/comptimetable/"
 
-  # Scrape the timetables data
   def self.scrape
+    timetable = self.new
+    timetable.scrape
+  end
+
+  # Scrape the timetables data
+  def scrape
+    @redis = Redis.new
+
     # Initialise a new browser to scrape the timetables with, using a
     # believable user agent. They don't seem to be checking user agents at
     # this time, but spoofing one can't hurt.
@@ -26,7 +33,7 @@ class Timetable
 
   protected
   # Scrape all the exams in all the sessions
-  def self.scrape_all_exam_sessions(page)
+  def scrape_all_exam_sessions(page)
     # Get a list of all exam sessions
     sessions = page.form_with(:name => 'search').
                     field_with(:name => 'UCBasicSearch$ddSession').
@@ -48,7 +55,7 @@ class Timetable
   end
 
   # Scrape all exam subjects in a session
-  def self.scrape_exam_subjects(page, session_number)
+  def scrape_exam_subjects(page, session_number)
     # See subjects beginning with any letter
     page.form_with(:name => 'search') do |f|
       f['UCBasicSearch2$UCSearchByLetter$btnAll'] = 'All'
@@ -84,7 +91,7 @@ class Timetable
   end
 
   # Scrape all continuous pages of exams, starting with the one passed
-  def self.scrape_exam_page_and_look_for_next_link(page)
+  def scrape_exam_page_and_look_for_next_link(page)
     # Actually scrape the page
     scrape_exam_page page
 
@@ -103,10 +110,11 @@ class Timetable
   end
 
   # Actually scrape exams from the passed page
-  def self.scrape_exam_page(page)
+  def scrape_exam_page(page)
     # Get the results table
     results = page.parser.xpath("//table[@class='results']").first
 
     # Save it into Redis
+    @redis.rpush 'raw_timetable_data', results
   end
 end
