@@ -22,6 +22,7 @@ GEM
       coderay (~> 1.0.5)
       method_source (~> 0.8)
       slop (~> 3.3.1)
+    ruby-progressbar (0.11.0)
     slop (3.3.2)
     unf (0.0.5)
       unf_ext
@@ -34,3 +35,4 @@ PLATFORMS
 DEPENDENCIES
   mechanize
   pry
+  ruby-progressbar
