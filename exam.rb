@@ -20,15 +20,12 @@ class Verdandi::Exam < Mongomatic::Base
     # Remove old timetables
     drop
 
-    # Create a new Redis connection
-    @redis = Redis.new
-
     # Get all raw HTML tables of results from Redis, convert them to a
     # Nokogiri structure that's useable, get all cells in each row that are
     # results cells, tidy up the text inside each cell and finally flatten
     # the results so that each element in results contains exam details, not
     # an array of all exam details in one of the HTML tables.
-    results = @redis.lrange('raw_timetable_data', 0, -1).map { |t|
+    results = REDIS.lrange('raw_timetable_data', 0, -1).map { |t|
       Nokogiri::HTML(t).xpath(
         '//table[
           @id="UCResultsTable_resultsTbl"
@@ -47,6 +44,9 @@ class Verdandi::Exam < Mongomatic::Base
 
   # Scrape the timetables data
   def self.scrape
+    # Remove any old Redis data
+    REDIS.del 'raw_timetable_data'
+
     # Initialise a new browser to scrape the timetables with, using a
     # believable user agent. They don't seem to be checking user agents at
     # this time, but spoofing one can't hurt.
@@ -157,7 +157,6 @@ class Verdandi::Exam < Mongomatic::Base
     results = page.parser.xpath("//table[@class='results']").first
 
     # Save it into Redis
-    redis = Redis.new
-    redis.rpush 'raw_timetable_data', results
+    REDIS.rpush 'raw_timetable_data', results
   end
 end
