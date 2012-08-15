@@ -1,14 +1,57 @@
 class Timetable
   BASE_TIMETABLE_URL = "http://www.education.gov.uk/comptimetable/"
+  EXAM_DETAILS_KEYS = [
+    :session,
+    :awarding_body,
+    :qualification,
+    :title,
+    :duration,
+    :date,
+    :start_time
+  ]
 
+  # Create a new Timetable instance, and call parse on it
+  def self.parse
+    timetable = self.new
+    timetable.parse
+  end
+
+  # Create a new Timetable instance, and call scrape on it
   def self.scrape
     timetable = self.new
     timetable.scrape
   end
 
+  # Parse the scraped timetables data and store it into Mongo
+  def parse
+    # Create a new Redis connection if there is not one already
+    @redis ||= Redis.new
+
+    # Get all raw HTML tables of results from Redis, convert them to a
+    # Nokogiri structure that's useable, get all cells in each row that are
+    # results cells, tidy up the text inside each cell and finally flatten
+    # the results so that each element in results contains exam details, not
+    # an array of all exam details in one of the HTML tables.
+    results = @redis.lrange('raw_timetable_data', 0, -1).map { |t|
+      Nokogiri::HTML(t).xpath(
+        '//table[
+          @id="UCResultsTable_resultsTbl"
+        ]//tr[
+          td/@class = "results noprint"
+        ]'
+      ).map { |r| r.xpath("td[not(input)]").map { |d| d.text.strip.lstrip } }
+    }.flatten(1)
+
+    # Turn each exam details into a hash, rather than array
+    results.map! { |r| Hash[EXAM_DETAILS_KEYS.zip(r)] }
+
+    binding.pry
+  end
+
   # Scrape the timetables data
   def scrape
-    @redis = Redis.new
+    # Create a new Redis connection if there is not one already
+    @redis ||= Redis.new
 
     # Initialise a new browser to scrape the timetables with, using a
     # believable user agent. They don't seem to be checking user agents at
@@ -69,7 +112,8 @@ class Timetable
         contains(@name, "UCBasicSearch2$UCPostBackSubjectList$subjectsRepeater")
         and contains(@name, "SubjectList")
         and contains(@name, "subjectName")
-      ]')
+      ]'
+    )
 
     # Initialise a new progress bar to show progress visually
     pbar = ProgressBar.new "Session #{session_number}", subjects.count
@@ -96,7 +140,11 @@ class Timetable
     scrape_exam_page page
 
     # Find the next page button, if it exists
-    next_button = page.parser.xpath("//input[@name='UCResultsTable$topNavigation$btnNext']").first
+    next_button = page.parser.xpath(
+      "//input[
+        @name='UCResultsTable$topNavigation$btnNext'
+      ]"
+    ).first
 
     # If it does exist, click it and scrape the resulting page
     if next_button
