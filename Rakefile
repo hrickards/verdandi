@@ -1,8 +1,4 @@
-require 'rubygems'
-require 'bundler'
-Bundler.require :default, :development
-
-require_relative 'timetable'
+require_relative 'init'
 
 task :scrape_raw_timetables do
   Timetable.scrape

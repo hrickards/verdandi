@@ -1,8 +1,11 @@
 source :rubygems
 
 gem 'mechanize'
-gem 'ruby-progressbar', :require => 'progressbar'
 gem 'redis'
+gem 'mongomatic'
+gem 'bson_ext'
+
+gem 'ruby-progressbar', :require => 'progressbar'
 
 group :development do
   gem 'pry'

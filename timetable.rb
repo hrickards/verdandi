@@ -1,4 +1,4 @@
-class Timetable
+class Timetable < Mongomatic::Base
   BASE_TIMETABLE_URL = "http://www.education.gov.uk/comptimetable/"
   EXAM_DETAILS_KEYS = [
     :session,
@@ -10,22 +10,13 @@ class Timetable
     :start_time
   ]
 
-  # Create a new Timetable instance, and call parse on it
-  def self.parse
-    timetable = self.new
-    timetable.parse
-  end
-
-  # Create a new Timetable instance, and call scrape on it
-  def self.scrape
-    timetable = self.new
-    timetable.scrape
-  end
-
   # Parse the scraped timetables data and store it into Mongo
-  def parse
-    # Create a new Redis connection if there is not one already
-    @redis ||= Redis.new
+  def self.parse
+    # Remove old timetables
+    drop
+
+    # Create a new Redis connection
+    @redis = Redis.new
 
     # Get all raw HTML tables of results from Redis, convert them to a
     # Nokogiri structure that's useable, get all cells in each row that are
@@ -45,14 +36,12 @@ class Timetable
     # Turn each exam details into a hash, rather than array
     results.map! { |r| Hash[EXAM_DETAILS_KEYS.zip(r)] }
 
-    binding.pry
+    # Store each result in Mongo
+    results.each { |r| insert r }
   end
 
   # Scrape the timetables data
-  def scrape
-    # Create a new Redis connection if there is not one already
-    @redis ||= Redis.new
-
+  def self.scrape
     # Initialise a new browser to scrape the timetables with, using a
     # believable user agent. They don't seem to be checking user agents at
     # this time, but spoofing one can't hurt.
@@ -76,7 +65,7 @@ class Timetable
 
   protected
   # Scrape all the exams in all the sessions
-  def scrape_all_exam_sessions(page)
+  def self.scrape_all_exam_sessions(page)
     # Get a list of all exam sessions
     sessions = page.form_with(:name => 'search').
                     field_with(:name => 'UCBasicSearch$ddSession').
@@ -98,7 +87,7 @@ class Timetable
   end
 
   # Scrape all exam subjects in a session
-  def scrape_exam_subjects(page, session_number)
+  def self.scrape_exam_subjects(page, session_number)
     # See subjects beginning with any letter
     page.form_with(:name => 'search') do |f|
       f['UCBasicSearch2$UCSearchByLetter$btnAll'] = 'All'
@@ -135,7 +124,7 @@ class Timetable
   end
 
   # Scrape all continuous pages of exams, starting with the one passed
-  def scrape_exam_page_and_look_for_next_link(page)
+  def self.scrape_exam_page_and_look_for_next_link(page)
     # Actually scrape the page
     scrape_exam_page page
 
@@ -158,11 +147,12 @@ class Timetable
   end
 
   # Actually scrape exams from the passed page
-  def scrape_exam_page(page)
+  def self.scrape_exam_page(page)
     # Get the results table
     results = page.parser.xpath("//table[@class='results']").first
 
     # Save it into Redis
-    @redis.rpush 'raw_timetable_data', results
+    redis = Redis.new
+    redis.rpush 'raw_timetable_data', results
   end
 end
