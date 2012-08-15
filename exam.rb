@@ -17,9 +17,6 @@ class Verdandi::Exam < Mongomatic::Base
 
   # Parse the scraped timetables data and store it into Mongo
   def self.parse
-    # Remove old timetables
-    drop
-
     # Get all raw HTML tables of results from Redis, convert them to a
     # Nokogiri structure that's useable, get all cells in each row that are
     # results cells, tidy up the text inside each cell and finally flatten
@@ -47,6 +44,9 @@ class Verdandi::Exam < Mongomatic::Base
 
   # Scrape the timetables data
   def self.scrape
+    # Remove old Mongo data
+    drop
+
     # Remove any old Redis data
     REDIS.del 'raw_timetable_data'
 
