@@ -1,7 +1,8 @@
-# Require gems
+# Require gems and other libs
 require 'rubygems'
 require 'bundler'
 Bundler.require :default, :development
+require 'open-uri'
 
 
 # Require and include application files
@@ -9,6 +10,7 @@ module Verdandi
 end
 
 require_relative 'exam'
+require_relative 'boundary'
 
 include Verdandi
 
