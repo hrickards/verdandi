@@ -1,4 +1,4 @@
-class Timetable < Mongomatic::Base
+class Seshat::Exam < Mongomatic::Base
   BASE_TIMETABLE_URL = "http://www.education.gov.uk/comptimetable/"
   EXAM_DETAILS_KEYS = [
     :session,
@@ -9,6 +9,11 @@ class Timetable < Mongomatic::Base
     :date,
     :start_time
   ]
+
+  # Get all exams and return as an array of hashes
+  def self.all
+    Exam.find.map { |e| e.to_hash }
+  end
 
   # Parse the scraped timetables data and store it into Mongo
   def self.parse
