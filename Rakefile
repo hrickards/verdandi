@@ -1,13 +1,9 @@
 require_relative 'init'
 
-task :scrape_raw_timetables do
+task :exams do
   Exam.scrape
 end
 
-task :parse_raw_timetables do
-  Exam.parse
-end
-
-task :default => [:scrape_raw_timetables, :parse_raw_timetables] do
+task :default => [:exams] do
   puts "Running..."
 end

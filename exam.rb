@@ -40,6 +40,9 @@ class Verdandi::Exam < Mongomatic::Base
 
     # Store each result in Mongo
     results.each { |r| insert r }
+
+    # Remove old data from REDIS
+    REDIS.del 'raw_timetable_data'
   end
 
   # Scrape the timetables data
@@ -123,6 +126,9 @@ class Verdandi::Exam < Mongomatic::Base
       end
 
       pbar.inc
+
+      # Parse the data we've just put in
+      parse
     end
 
     pbar.finish
