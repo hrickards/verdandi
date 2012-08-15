@@ -1,4 +1,4 @@
-class Seshat::Exam < Mongomatic::Base
+class Verdandi::Exam < Mongomatic::Base
   BASE_TIMETABLE_URL = "http://www.education.gov.uk/comptimetable/"
   EXAM_DETAILS_KEYS = [
     :session,

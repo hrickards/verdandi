@@ -2,11 +2,11 @@ require 'rubygems'
 require 'bundler'
 Bundler.require :default, :development
 
-module Seshat
+module Verdandi
 end
 
 require_relative 'exam'
 
-include Seshat
+include Verdandi
 
-Mongomatic.db = Mongo::Connection.new.db "seshat"
+Mongomatic.db = Mongo::Connection.new.db "verdandi"
