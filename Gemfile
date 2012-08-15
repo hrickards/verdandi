@@ -8,6 +8,8 @@ gem 'grape'
 gem 'builder'
 
 gem 'ruby-progressbar', :require => 'progressbar'
+gem 'foreman'
+gem 'thin'
 
 group :development do
   gem 'pry'
