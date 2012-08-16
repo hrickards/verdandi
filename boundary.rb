@@ -1,12 +1,14 @@
+# encoding: utf-8
+
 class Verdandi::Boundaries < Mongomatic::Base
-  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt", "diploma advanced.txt"]
+  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt", "diploma advanced.txt", "diploma levels 1 and 2.txt"]
   def self.scrape
     Dir.foreach('data/boundary/aqa') do |filename|
       # TODO Do all files
       next if filename == "." or filename == ".." or not WORKING_FILENAMES.include? filename
 
       # Get the text content of the PDF
-      text = File.open("data/boundary/aqa/#{filename}", "rb").read
+      text = File.open("data/boundary/aqa/#{filename}", "r:windows-1251:utf-8").read
 
       # Split on newlines and strip whitespace
       pages = text.split("\n").map { |line| line.strip.lstrip }
@@ -14,7 +16,7 @@ class Verdandi::Boundaries < Mongomatic::Base
       # Get the year and qualification
       year = pages[5].split(" - ").last.split(" ")[0..1].join("_").downcase.to_sym
       raw_qualification = pages[6]
-      qualification = raw_qualification.gsub(" - ", "_").gsub(/[- ]/, "_").downcase.to_sym
+      qualification = raw_qualification.gsub(/ [-–_] /, "_").gsub(/[- ]/, "_").downcase.to_sym
 
       # Split into pages
       pages = pages.each_slice_from_approximate_value raw_qualification
@@ -136,6 +138,8 @@ class Verdandi::Boundaries < Mongomatic::Base
                     %w{a_star a b c d e f g}.map { |x| x.to_sym }
                   when 2
                     %w{a e}.map { |x| x.to_sym }
+                  when 3
+                    %w{a* a b}.map { |x| x.to_sym }
                   else
                     pp line
                     pp title
