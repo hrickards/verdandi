@@ -3,9 +3,10 @@ require 'rubygems'
 require 'bundler'
 Bundler.require :default, :development
 require 'open-uri'
-
+require 'pp'
 
 # Require and include application files
+require_relative 'lib'
 module Verdandi
 end
 

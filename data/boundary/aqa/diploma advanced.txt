@@ -1,0 +1,153 @@
+Version 1.0
+Copyright © 2011 AQA and its licensors. All rights reserved.
+The Assessment and Qualifications Alliance (AQA) is a company limited by guarantee registered in England and Wales (company number 3644723) and a registered charity (registered charity number 1073334).
+Registered address: AQA, Devas Street, Manchester M15 6EX.
+???
+Unit grade boundaries - June 2011 exams
+Diploma - Advanced
+Here you can see the scaled mark unit grade boundaries for the Diploma - Advanced Principal Learning units.
+As all units consist of just one component, no scaling of marks is necessary: the scaled mark grade boundaries shown are the same as the
+raw mark grade boundaries.
+Uniform mark grade boundaries can be found in Appendix A of the Uniform Marks Leaflet
+For further information, contact CERP@aqa.org.uk.
+Published 17 August 2011Scaled mark unit grade boundaries - June 2011 exams
+Maximum
+Code Title Scaled Mark A* A B C D E
+BAF3U1 PL BUSINESS & ADMIN L3 UNIT 1 90 68 60 52 44 36 28
+BAF3U2 PL BUSINESS & ADMIN L3 UNIT 2 90 72 64 56 48 40 33
+BAF3U3 PL BUSINESS & ADMIN L3 UNIT 3 90 69 61 53 45 37 30
+BAF3U4 PL BUSINESS & ADMIN L3 UNIT 4 90 68 60 52 44 36 28
+BAF3U5 PL BUSINESS & ADMIN L3 UNIT 5 90 68 60 52 44 36 28
+BAF3U6 PL BUSINESS & ADMIN L3 UNIT 6 90 68 60 52 44 36 28
+BAF3U7 PL BUSINESS & ADMIN L3 UNIT 7 90 68 60 52 44 36 28
+BAF3U8 PL BUSINESS & ADMIN L3 UNIT 8 90 67 59 51 43 35 28
+CBE3U1 PL CONSTRUCTION LEVEL 3 UNIT 1 60 47 42 37 32 27 23
+CBE3U2 PL CONSTRUCTION LEVEL 3 UNIT 2 60 48 43 38 33 28 23
+CBE3U3 PL CONSTRUCTION LEVEL 3 UNIT 3 60 47 42 37 32 27 23
+CBE3U4 PL CONSTRUCTION LEVEL 3 UNIT 4 60 46 41 36 31 27 23
+CBE3U5 PL CONSTRUCTION LEVEL 3 UNIT 5 60 48 43 38 33 28 24
+CBE3U6 PL CONSTRUCTION LEVEL 3 UNIT 6 60 48 43 38 33 28 24
+CBE3U7 PL CONSTRUCTION LEVEL 3 UNIT 7 60 47 42 37 32 28 24
+CAM3U1 PL CREATIVE & MEDIA L3 UNIT 1 60 48 42 36 30 24 18
+CAM3U2 PL CREATIVE & MEDIA L3 UNIT 2 60 49 42 36 30 24 18
+CAM3U3 PL CREATIVE & MEDIA L3 UNIT 3 60 50 43 36 30 24 18
+CAM3U4 PL CREATIVE & MEDIA L3 UNIT 4 60 48 42 36 30 24 18
+CAM3U5 PL CREATIVE & MEDIA L3 UNIT 5 60 48 42 36 30 24 18
+CAM3U6 PL CREATIVE & MEDIA L3 UNIT 6 60 48 42 36 30 24 18
+ENG3U1 PL ENGINEERING LEVEL 3 UNIT 1 60 52 46 40 34 29 24
+ENG3U2 PL ENGINEERING LEVEL 3 UNIT 2 60 54 48 42 36 31 26
+ENG3U3 PL ENGINEERING LEVEL 3 UNIT 3 60 53 47 41 35 29 24
+ENG3U4 PL ENGINEERING LEVEL 3 UNIT 4 60 52 46 40 34 28 22
+ENG3U5 PL ENGINEERING LEVEL 3 UNIT 5 60 55 49 43 37 31 26
+Scaled Mark Grade Boundaries
+Diploma - Advanced ???Scaled mark unit grade boundaries - June 2011 exams
+Maximum
+Code Title Scaled Mark A* A B C D E
+Scaled Mark Grade Boundaries
+Diploma - Advanced ???
+ENG3U6 PL ENGINEERING LEVEL 3 UNIT 6 60 55 49 43 37 31 25
+ENG3U7 PL ENGINEERING LEVEL 3 UNIT 7 60 55 49 43 37 31 25
+ENG3U8 PL ENGINEERING LEVEL 3 UNIT 8 60 48 42 36 30 25 20
+EN3U9C PL ENGINEERING L3 UNIT 9 CWK 60 52 46 40 34 28 22
+EN3U9W PL ENGINEERING L3 UNIT 9 WRIT 60 48 42 36 30 25 20
+ELS3U1 PL ENVIRONMENTAL L3 UNIT 1 90 71 63 55 47 40 33
+ELS3U2 PL ENVIRONMENTAL L3 UNIT 2 90 72 64 56 48 40 33
+ELS3U3 PL ENVIRONMENTAL L3 UNIT 3 90 71 63 55 47 40 33
+ELS3U4 PL ENVIRONMENTAL L3 UNIT 4 90 71 63 55 47 40 33
+ELS3U5 PL ENVIRONMENTAL L3 UNIT 5 90 no candidates were entered for this unit
+ELS3U6 PL ENVIRONMENTAL L3 UNIT 6 90 70 63 56 49 42 36
+ELS3U7 PL ENVIRONMENTAL L3 UNIT 7 90 62 56 50 44 38 32
+ELS3U8 PL ENVIRONMENTAL L3 UNIT 8 90 73 65 57 49 41 33
+ELS3U9 PL ENVIRONMENTAL L3 UNIT 9 90 71 63 55 47 40 33
+HAB3U1 PL HAIR AND BEAUTY L3 UNIT 1 90 no candidates were entered for this unit
+HAB3U2 PL HAIR AND BEAUTY L3 UNIT 2 90 no candidates were entered for this unit
+HAB3U3 PL HAIR AND BEAUTY L3 UNIT 3 90 67 59 51 44 37 30
+HAB3U4 PL HAIR AND BEAUTY L3 UNIT 4 90 no candidates were entered for this unit
+HAB3U5 PL HAIR AND BEAUTY L3 UNIT 5 90 70 63 56 49 42 35
+HAB3U6 PL HAIR AND BEAUTY L3 UNIT 6 90 66 60 54 48 42 36
+HAB3U7 PL HAIR AND BEAUTY L3 UNIT 7 90 63 56 49 43 37 31
+HAB3U8 PL HAIR AND BEAUTY L3 UNIT 8 90 69 62 55 48 41 34
+HAB3W1 PL HAIR AND BEAUTY (WALES) L3 UNIT 1 90 no candidates were entered for this unit
+HAB3W2 PL HAIR AND BEAUTY (WALES) L3 UNIT 2 90 no candidates were entered for this unit
+HAB3W3 PL HAIR AND BEAUTY (WALES) L3 UNIT 3 90 no candidates were entered for this unit
+HAB3W4 PL HAIR AND BEAUTY (WALES) L3 UNIT 4 90 no candidates were entered for this unitScaled mark unit grade boundaries - June 2011 exams
+Maximum
+Code Title Scaled Mark A* A B C D E
+Scaled Mark Grade Boundaries
+Diploma - Advanced ???
+HAB3W5 PL HAIR AND BEAUTY (WALES) L3 UNIT 5 90 no candidates were entered for this unit
+HAB3W6 PL HAIR AND BEAUTY (WALES) L3 UNIT 6 90 no candidates were entered for this unit
+HAB3W7 PL HAIR AND BEAUTY (WALES) L3 UNIT 7 90 no candidates were entered for this unit
+HAB3W8 PL HAIR AND BEAUTY (WALES) L3 UNIT 8 90 no candidates were entered for this unit
+HOS3U1 PL HOSPITALITY LEVEL 3 UNIT 1 90 70 62 54 46 38 30
+HOS3U2 PL HOSPITALITY LEVEL 3 UNIT 2 90 no candidates were entered for this unit
+HOS3U3 PL HOSPITALITY LEVEL 3 UNIT 3 90 no candidates were entered for this unit
+HOS3U4 PL HOSPITALITY LEVEL 3 UNIT 4 90 no candidates were entered for this unit
+HOS3U5 PL HOSPITALITY LEVEL 3 UNIT 5 90 no candidates were entered for this unit
+HOS3U6 PL HOSPITALITY LEVEL 3 UNIT 6 90 no candidates were entered for this unit
+HOS3U7 PL HOSPITALITY LEVEL 3 UNIT 7 90 no candidates were entered for this unit
+HOS3U8 PL HOSPITALITY LEVEL 3 UNIT 8 90 no candidates were entered for this unit
+HOS3U9 PL HOSPITALITY LEVEL 3 UNIT 9 90 no candidates were entered for this unit
+INF3U1 PL INFORMATION TECH L3 UNIT 1 60 50 44 38 32 27 22
+INF3U2 PL INFORMATION TECH L3 UNIT 2 60 52 46 40 34 28 23
+INF3U3 PL INFORMATION TECH L3 UNIT 3 60 51 45 39 34 29 24
+INF3U4 PL INFORMATION TECH L3 UNIT 4 60 52 46 40 34 29 24
+INF3U5 PL INFORMATION TECH L3 UNIT 5 60 54 47 40 34 28 22
+INF3U6 PL INFORMATION TECH L3 UNIT 6 60 52 46 40 34 29 24
+INF3U7 PL INFORMATION TECH L3 UNIT 7 60 51 45 39 33 27 22
+PBS3U1 PL PUBLIC SERVICES L3 UNIT 1 90 no candidates were entered for this unit
+PBS3U2 PL PUBLIC SERVICES L3 UNIT 2 90 72 60 48 37 26 15
+PBS3U3 PL PUBLIC SERVICES L3 UNIT 3 90 no candidates were entered for this unit
+PBS3U4 PL PUBLIC SERVICES L3 UNIT 4 90 52 44 36 28 20 13
+PBS3U5 PL PUBLIC SERVICES L3 UNIT 5 90 no candidates were entered for this unit
+PBS3U6 PL PUBLIC SERVICES L3 UNIT 6 90 no candidates were entered for this unitScaled mark unit grade boundaries - June 2011 exams
+Maximum
+Code Title Scaled Mark A* A B C D E
+Scaled Mark Grade Boundaries
+Diploma - Advanced ???
+PBS3U7 PL PUBLIC SERVICES L3 UNIT 7 90 78 65 52 39 26 13
+RBS3U1 PL RETAIL BUSINESS L3 UNIT 1 90 no candidates were entered for this unit
+RBS3U2 PL RETAIL BUSINESS L3 UNIT 2 90 no candidates were entered for this unit
+RBS3U3 PL RETAIL BUSINESS L3 UNIT 3 90 no candidates were entered for this unit
+RBS3U4 PL RETAIL BUSINESS L3 UNIT 4 90 no candidates were entered for this unit
+RBS3U5 PL RETAIL BUSINESS L3 UNIT 5 90 no candidates were entered for this unit
+RBS3U6 PL RETAIL BUSINESS L3 UNIT 6 90 no candidates were entered for this unit
+RBS3U7 PL RETAIL BUSINESS L3 UNIT 7 90 no candidates were entered for this unit
+RBS3U8 PL RETAIL BUSINESS L3 UNIT 8 90 no candidates were entered for this unit
+SHD3U1 PL SOC HLTH & DEV L3 UNIT 1 90 no candidates were entered for this unit
+SHD3U2 PL SOC HLTH & DEV L3 UNIT 2 90 no candidates were entered for this unit
+SHD3U3 PL SOC HLTH & DEV L3 UNIT 3 90 no candidates were entered for this unit
+SHD3U4 PL SOC HLTH & DEV L3 UNIT 4 90 no candidates were entered for this unit
+SHD3U5 PL SOC HLTH & DEV L3 UNIT 5 90 no candidates were entered for this unit
+SHD3U6 PL SOC HLTH & DEV L3 UNIT 6 90 no candidates were entered for this unit
+SHD3W1 PL SOC HLTH & DEV (WALES) L3 UNIT 1 90 no candidates were entered for this unit
+SHD3W2 PL SOC HLTH & DEV (WALES) L3 UNIT 2 90 no candidates were entered for this unit
+SHD3W3 PL SOC HLTH & DEV (WALES) L3 UNIT 3 90 no candidates were entered for this unit
+SHD3W4 PL SOC HLTH & DEV (WALES) L3 UNIT 4 90 no candidates were entered for this unit
+SHD3W5 PL SOC HLTH & DEV (WALES) L3 UNIT 5 90 no candidates were entered for this unit
+SHD3W6 PL SOC HLTH & DEV (WALES) L3 UNIT 6 90 no candidates were entered for this unit
+SAL3U1 PL SPORT & LEISURE L3 UNIT 1 90 67 57 47 38 29 20
+SAL3U2 PL SPORT & LEISURE L3 UNIT 2 90 no candidates were entered for this unit
+SAL3U3 PL SPORT & LEISURE L3 UNIT 3 90 no candidates were entered for this unit
+SAL3U4 PL SPORT & LEISURE L3 UNIT 4 90 no candidates were entered for this unitScaled mark unit grade boundaries - June 2011 exams
+Maximum
+Code Title Scaled Mark A* A B C D E
+Scaled Mark Grade Boundaries
+Diploma - Advanced ???
+SAL3U5 PL SPORT & LEISURE L3 UNIT 5 90 77 65 53 42 31 20
+SAL3U6 PL SPORT & LEISURE L3 UNIT 6 90 67 57 47 38 29 20
+SAL3U7 PL SPORT & LEISURE L3 UNIT 7 90 no candidates were entered for this unit
+SAL3U8 PL SPORT & LEISURE L3 UNIT 8 90 no candidates were entered for this unit
+SAL3U9 PL SPORT & LEISURE L3 UNIT 9 90 no candidates were entered for this unit
+TAT3U1 PL TRAVEL & TOURISM L3 UNIT 1 90 no candidates were entered for this unit
+TAT3U2 PL TRAVEL & TOURISM L3 UNIT 2 90 no candidates were entered for this unit
+TAT3U3 PL TRAVEL & TOURISM L3 UNIT 3 90 no candidates were entered for this unit
+TAT3U4 PL TRAVEL & TOURISM L3 UNIT 4 90 no candidates were entered for this unit
+TAT3U5 PL TRAVEL & TOURISM L3 UNIT 5 90 no candidates were entered for this unit
+TAT3U6 PL TRAVEL & TOURISM L3 UNIT 6 90 no candidates were entered for this unit
+TAT3U7 PL TRAVEL & TOURISM L3 UNIT 7 90 no candidates were entered for this unit
+TAT3U8 PL TRAVEL & TOURISM L3 UNIT 8 90 no candidates were entered for this unit
+Version 1.0 17 August 2011
+Copyright © 2011 AQA and its licensors. All rights reserved.
+The Assessment and Qualifications Alliance (AQA) is a company limited by guarantee registered in England and Wales (company number 3644723)
+and a registered charity (registered charity number 1073334). Registered address: AQA, Devas Street, Manchester M15 6EX.
