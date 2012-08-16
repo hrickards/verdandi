@@ -1,5 +1,5 @@
 class Verdandi::Boundaries < Mongomatic::Base
-  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt"]
+  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt", "diploma advanced.txt"]
   def self.scrape
     Dir.foreach('data/boundary/aqa') do |filename|
       # TODO Do all files
@@ -14,7 +14,7 @@ class Verdandi::Boundaries < Mongomatic::Base
       # Get the year and qualification
       year = pages[5].split(" - ").last.split(" ")[0..1].join("_").downcase.to_sym
       raw_qualification = pages[6]
-      qualification = raw_qualification.gsub(/[- ]/, "_").downcase.to_sym
+      qualification = raw_qualification.gsub(" - ", "_").gsub(/[- ]/, "_").downcase.to_sym
 
       # Split into pages
       pages = pages.each_slice_from_approximate_value raw_qualification
@@ -32,16 +32,17 @@ class Verdandi::Boundaries < Mongomatic::Base
       # Iterate over each page
       pages.each do |page|
         # If we only have copy, skip the page
-        next if page == ["Max. Scaled Mark Grade Boundaries and A* Conversion Points", "Code Title Scaled Mark A* A B C D E"] or page == ["Max Scaled Mark Grade Boundaries and A* Conversion Points", "Code Title Scaled Mark A* A B C D E"]
+        next if page == ["Max. Scaled Mark Grade Boundaries and A* Conversion Points", "Code Title Scaled Mark A* A B C D E"] or page == ["Max Scaled Mark Grade Boundaries and A* Conversion Points", "Code Title Scaled Mark A* A B C D E"] or page == ["Maximum", "Code Title Scaled Mark A* A B C D E", "Scaled Mark Grade Boundaries"]
 
         # If the first two lines are just copy, remove them
         2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark A* A B C D E F G"]
 
         # Remove any copy at the end
         page.reverse_slice_until_includes! "Scaled mark unit grade boundaries"
+        page.reverse_slice_until_includes! "Scaled Mark Grade Boundaries"
 
         # Remove any lines where no candidates where entered or are invalid
-        page.select! { |line| not (line.include? "No candidates were entered for this unit" or line.include? "???" )}
+        page.select! { |line| not (line.include? "No candidates were entered for this unit" or line.include? "???" or line.include? "no candidates were entered for this unit")}
 
         # Fix duplicate lines
         page.map! { |line| fix_duplicate_line line }
