@@ -1,4 +1,5 @@
 require 'pp'
+require 'timeout'
 
 class Array
   # Splits up an array from the given value
@@ -47,12 +48,67 @@ def fix_duplicate_line(line)
   rest_duplicated = rest_words[0...(rest_words.length/2)] == rest_words[(rest_words.length/2)..-1]
 
   if first_duplicated and rest_duplicated
-    grades = words[index_of_first_grade+1..-1]
+    grades = words[index_of_first_grade..-1]
     grades.map! { |g| g.scan(/./) }.map! { |g| g[0...(g.length/2)].join("") }
     ([words[0]] + rest_words[0...(rest_words.length/2)] + grades).join " "
   else
     line
   end
+end
+
+def parse_marks(marks)
+  marks.map { |mark| mark == "-" ? "-" : mark.to_i }
+end
+
+# Parses the details of a boundary from a passed line
+def parse_line(line)
+  words = line.split(" ")
+  code = words.shift
+  line = words.join " "
+
+  marks_string, title = line.reverse.scan(/([\d -]+) (.*)/)[0]
+  marks_string.reverse!
+  title.reverse!
+
+  if title.split(" ")[-1].downcase == "unit" or (title.split(" ")[-1].downcase == "written" and marks_string.split(" ")[0].match(/\d[a-zA-Z]?/)[0] == marks_string.split(" ")[0])
+    title = "#{title} #{marks_string.split(" ")[0]}"
+    marks_string = marks_string.split(" ")[1..-1].join " "
+  end
+
+
+
+
+
+  if [code, title, marks_string].inject (false) { |r, o| r or o.nil? or o.empty? }
+    pp code
+    pp title
+    pp marks_string
+    raise "Error parsing line - #{line}"
+  end
+
+  marks_string = marks_string.split " "
+  max_scaled_mark = marks_string.shift
+
+  marks_string = parse_marks marks_string
+
+  grade_names = case marks_string.length
+                when 6
+                  %w{a_star a b c d e}.map { |x| x.to_sym }
+                when 2
+                  %w{a e}.map { |x| x.to_sym }
+                else
+                  pp line
+                  pp title
+                  raise "Invalid number of grades - #{marks_string.length}"
+                end
+
+  grades = Hash[grade_names.zip marks_string]
+
+  details = [code, title, max_scaled_mark, grades]
+  labels = :code, :title, :max_scaled_mark, :grades
+  details = Hash[labels.zip details]
+
+  details
 end
 
 
@@ -69,6 +125,8 @@ pages.shift
 pages[0].slice_until_includes! "Code"
 pages[-1].reverse_slice_until_includes! "Version"
 
+details = []
+
 # Iterate over each page
 pages.each do |page|
   # Remove any copy at the end
@@ -77,5 +135,10 @@ pages.each do |page|
   # Fix duplicate lines
   page.map! { |line| fix_duplicate_line line }
 
-  pp page
+  # Actually parse the details from each line
+  page.map! { |line| parse_line line }
+
+  details += page
 end
+
+pp details.length
