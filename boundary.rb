@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 class Verdandi::Boundaries < Mongomatic::Base
-  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt", "diploma advanced.txt", "diploma levels 1 and 2.txt", "elc.txt"]
+  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt", "diploma advanced.txt", "diploma levels 1 and 2.txt", "elc.txt", "fcse.txt"]
   def self.scrape
     Dir.foreach('data/boundary/aqa') do |filename|
       # TODO Do all files
@@ -24,7 +24,8 @@ class Verdandi::Boundaries < Mongomatic::Base
       # Remove the first page (just copy), and the top of the second page and the
       # bottom of the last page
       pages.shift
-      pages.shift if qualification == :gcse_units or qualification == :elc
+      pages.shift if qualification == :gcse_units or qualification == :elc or qualification == :fcse
+      pages.pop if qualification == :fcse
       pages[0].slice_until_includes! "Code"
       pages[-1].reverse_slice_until_includes! "Version"
 
@@ -148,6 +149,8 @@ class Verdandi::Boundaries < Mongomatic::Base
                     [:a_star, :a, :b, :c, :d, :e]
                   when [3, :diploma_levels_1_and_2]
                     [:a_star, :a, :b]
+                  when [3, :fcse]
+                    [:distinction, :merit, :pass]
                   when [2, :a_level]
                     [:a, :e]
                   else
