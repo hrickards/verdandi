@@ -1,5 +1,5 @@
 class Verdandi::Boundaries < Mongomatic::Base
-  WORKING_FILENAMES = ["gcse units.txt", "a level.txt"]
+  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt"]
   def self.scrape
     Dir.foreach('data/boundary/aqa') do |filename|
       # TODO Do all files
@@ -32,7 +32,7 @@ class Verdandi::Boundaries < Mongomatic::Base
       # Iterate over each page
       pages.each do |page|
         # If we only have copy, skip the page
-        next if page == ["Max. Scaled Mark Grade Boundaries and A* Conversion Points", "Code Title Scaled Mark A* A B C D E"]
+        next if page == ["Max. Scaled Mark Grade Boundaries and A* Conversion Points", "Code Title Scaled Mark A* A B C D E"] or page == ["Max Scaled Mark Grade Boundaries and A* Conversion Points", "Code Title Scaled Mark A* A B C D E"]
 
         # If the first two lines are just copy, remove them
         2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark A* A B C D E F G"]
@@ -53,7 +53,18 @@ class Verdandi::Boundaries < Mongomatic::Base
         details += page
       end
 
-      pp details.length
+      record = {
+        :year => year,
+        :qualification => qualification,
+        :boundaries => details
+      }
+
+      pp({ :year => year,
+        :qualification => qualification,
+        :count => details.count
+      })
+
+      #pp record
     end
   end
   
@@ -66,15 +77,19 @@ class Verdandi::Boundaries < Mongomatic::Base
     first_duplicated = words[0] == words[1]
 
     index_of_first_grade = words.each_with_index.select { |word, i| words[i-1].downcase != "unit" and (i...words.length).inject (true) { |r, j| r and (not words[j] =~ /\D+/ or words[j] == "--" or words[j] == "-") } }.map { |word, i| i }.min
-    rest_words = words[2...index_of_first_grade]
-    rest_duplicated = rest_words[0...(rest_words.length/2)] == rest_words[(rest_words.length/2)..-1]
+    begin
+      rest_words = words[2...index_of_first_grade]
+      rest_duplicated = rest_words[0...(rest_words.length/2)] == rest_words[(rest_words.length/2)..-1]
 
-    if first_duplicated and rest_duplicated
-      grades = words[index_of_first_grade..-1]
-      grades.map! { |g| g.scan(/./) }.map! { |g| g[0...(g.length/2)].join("") }
-      ([words[0]] + rest_words[0...(rest_words.length/2)] + grades).join " "
-    else
-      line
+      if first_duplicated and rest_duplicated
+        grades = words[index_of_first_grade..-1]
+        grades.map! { |g| g.scan(/./) }.map! { |g| g[0...(g.length/2)].join("") }
+        ([words[0]] + rest_words[0...(rest_words.length/2)] + grades).join " "
+      else
+        line
+      end
+    rescue Exception
+      raise "Failed fixing duplicate line on #{line}"
     end
   end
 
