@@ -31,5 +31,22 @@ class Array
       end
     end
   end
+
+  def mid_slice_until_includes!(string1, string2)
+    start_index = self.index_of_element_that_includes string1
+    end_index = self.index_of_element_that_includes string2
+    if start_index and end_index
+      self[start_index] = self[start_index].rpartition(string1).first
+      if self[start_index].empty?
+        self.slice!(start_index..end_index)
+      else
+        self.slice!(start_index+1..end_index)
+      end
+    end
+  end
+
+  def last_slice_includes!(string)
+    self[-1] = self[-1].rpartition(string).first if self[-1].include? string
+  end
 end
 

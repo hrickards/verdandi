@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 class Verdandi::Boundaries < Mongomatic::Base
-  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt", "diploma advanced.txt", "diploma levels 1 and 2.txt"]
+  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt", "diploma advanced.txt", "diploma levels 1 and 2.txt", "elc.txt"]
   def self.scrape
     Dir.foreach('data/boundary/aqa') do |filename|
       # TODO Do all files
@@ -24,7 +24,7 @@ class Verdandi::Boundaries < Mongomatic::Base
       # Remove the first page (just copy), and the top of the second page and the
       # bottom of the last page
       pages.shift
-      pages.shift if filename == "gcse units.txt"
+      pages.shift if qualification == :gcse_units or qualification == :elc
       pages[0].slice_until_includes! "Code"
       pages[-1].reverse_slice_until_includes! "Version"
 
@@ -38,19 +38,23 @@ class Verdandi::Boundaries < Mongomatic::Base
 
         # If the first two lines are just copy, remove them
         2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark A* A B C D E F G"]
+        2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark Level 3 Level 2 Level 1"]
 
-        # Remove any copy at the end
-        page.reverse_slice_until_includes! "Scaled mark unit grade boundaries"
-        page.reverse_slice_until_includes! "Scaled Mark Grade Boundaries"
+        page.last_slice_includes! "Scaled mark unit grade boundaries"
+        page.last_slice_includes! "Scaled mark grade boundaries"
+        page.last_slice_includes! "Scaled Mark Grade Boundaries"
+        page.mid_slice_until_includes! "Scaled mark unit grade boundaries", "Code Title Scaled Mark A* A B C D E"
+        page.mid_slice_until_includes! "Scaled mark unit grade boundaries", "Code Title Scaled Mark A* A B"
+        2.times { page.mid_slice_until_includes! "Diploma Principal Learning Units Level 1", "Code Title Scaled Mark A* A B" }
 
         # Remove any lines where no candidates where entered or are invalid
-        page.select! { |line| not (line.include? "No candidates were entered for this unit" or line.include? "???" or line.include? "no candidates were entered for this unit")}
+        page.select! { |line| not (line.include? "No candidates were entered for this unit" or line == "???" or line.include? "no candidates were entered for this unit" or line.empty?)}
 
         # Fix duplicate lines
         page.map! { |line| fix_duplicate_line line }
 
         # Actually parse the details from each line
-        page.map! { |line| parse_line line }
+        page.map! { |line| parse_line line, qualification }
 
         # Add the boundaries
         details += page
@@ -101,7 +105,7 @@ class Verdandi::Boundaries < Mongomatic::Base
   end
 
   # Parses the details of a boundary from a passed line
-  def self.parse_line(line)
+  def self.parse_line(line, qualification)
     words = line.split(" ")
     code = words.shift
     line = words.join " "
@@ -131,15 +135,21 @@ class Verdandi::Boundaries < Mongomatic::Base
 
     marks_string = parse_marks marks_string
 
-    grade_names = case marks_string.length
-                  when 6
-                    %w{a_star a b c d e}.map { |x| x.to_sym }
-                  when 8
-                    %w{a_star a b c d e f g}.map { |x| x.to_sym }
-                  when 2
-                    %w{a e}.map { |x| x.to_sym }
-                  when 3
-                    %w{a* a b}.map { |x| x.to_sym }
+    grade_names = case [marks_string.length, qualification]
+                  when [8, :gcse_units]
+                    [:a_star, :a, :b, :c, :d, :e, :f, :g]
+                  when [3, :elc]
+                    [:level_3, :level_2, :level_1]
+                  when [6, :a_level]
+                    [:a_star, :a, :b, :c, :d, :e]
+                  when [6, :applied_a_level]
+                    [:a_star, :a, :b, :c, :d, :e]
+                  when [6, :diploma_advanced]
+                    [:a_star, :a, :b, :c, :d, :e]
+                  when [3, :diploma_levels_1_and_2]
+                    [:a_star, :a, :b]
+                  when [2, :a_level]
+                    [:a, :e]
                   else
                     pp line
                     pp title
