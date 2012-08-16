@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 class Verdandi::Boundaries < Mongomatic::Base
-  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt", "diploma advanced.txt", "diploma levels 1 and 2.txt", "elc.txt", "fcse.txt"]
+  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt", "diploma advanced.txt", "diploma levels 1 and 2.txt", "elc.txt", "fcse.txt", "fsmq advanced pilot.txt"]
   def self.scrape
     Dir.foreach('data/boundary/aqa') do |filename|
       # TODO Do all files
@@ -16,7 +16,7 @@ class Verdandi::Boundaries < Mongomatic::Base
       # Get the year and qualification
       year = pages[5].split(" - ").last.split(" ")[0..1].join("_").downcase.to_sym
       raw_qualification = pages[6]
-      qualification = raw_qualification.gsub(/ [-–_] /, "_").gsub(/[- ]/, "_").downcase.to_sym
+      qualification = raw_qualification.gsub(/[()]/, '').gsub(/ [-–_] /, "_").gsub(/[- ]/, "_").downcase.to_sym
 
       # Split into pages
       pages = pages.each_slice_from_approximate_value raw_qualification
@@ -25,7 +25,7 @@ class Verdandi::Boundaries < Mongomatic::Base
       # bottom of the last page
       pages.shift
       pages.shift if qualification == :gcse_units or qualification == :elc or qualification == :fcse
-      pages.pop if qualification == :fcse
+      pages.pop if qualification == :fcse or qualification == :fsmq_advanced_pilot
       pages[0].slice_until_includes! "Code"
       pages[-1].reverse_slice_until_includes! "Version"
 
@@ -144,6 +144,8 @@ class Verdandi::Boundaries < Mongomatic::Base
                   when [6, :a_level]
                     [:a_star, :a, :b, :c, :d, :e]
                   when [6, :applied_a_level]
+                    [:a_star, :a, :b, :c, :d, :e]
+                  when [6, :fsmq_advanced_pilot]
                     [:a_star, :a, :b, :c, :d, :e]
                   when [6, :diploma_advanced]
                     [:a_star, :a, :b, :c, :d, :e]
