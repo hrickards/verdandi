@@ -1,6 +1,6 @@
 # encoding: utf-8
 
-class Verdandi::Boundaries < Mongomatic::Base
+class Verdandi::Boundary < Mongomatic::Base
   WORKING_FILENAMES = ["a level.txt"]
   def self.scrape
     # Drop old mongo results

@@ -5,7 +5,7 @@ task :exams do
 end
 
 task :boundaries do
-  Boundaries.scrape
+  Boundary.scrape
 end
 
 task :default => [:exams] do
