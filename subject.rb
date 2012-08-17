@@ -1,7 +1,17 @@
 class Verdandi::Subject < Mongomatic::Base
+  def self.all
+    parse_find find
+  end
 end
 
 class Verdandi::BaseSubject < Mongomatic::Base
+  def self.all_array
+    parse_find find
+  end
+
+  def self.find_one_hash(id)
+    details = parse_find_hash find_one(BSON::ObjectId(id)).to_hash
+  end
 end
 
 class Verdandi::SubjectParse 
@@ -16,10 +26,12 @@ class Verdandi::SubjectParse
 
     subjects = Exam.all.map { |exam| exam["subject"] }
     base_subjects = subjects.map { |subject| base_subject subject }.uniq.sort
-    subjects.map! { |subject| {:name => subject, :base => base_subject(subject) } }.uniq!
 
-    base_subjects.each { |base_subject| BaseSubject.insert base_subject }
+    subjects.map! { |subject| {:name => subject, :base => base_subject(subject) } }.uniq!
     subjects.each { |subject| Subject.insert subject }
+
+    base_subjects.map! { |subject| {:name => subject } }
+    base_subjects.each { |base_subject| BaseSubject.insert base_subject }
   end
 
   protected
