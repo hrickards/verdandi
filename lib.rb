@@ -5,6 +5,10 @@ class Array
   def each_slice_from_approximate_value(value)
     self.chunk { |el| el.include? value }.reject { |s, a| s }.map { |s, a| a }
   end
+
+  def each_slice_from_beginning_value(value)
+    self.chunk { |el| el[0...value.length] == value }.reject { |s, a| s }.map { |s, a| a }
+  end
   
   # Returns the index of the element in the passed array that includes the
   # passed string somewhere within it

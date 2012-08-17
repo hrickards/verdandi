@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 class Verdandi::Boundaries < Mongomatic::Base
-  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt", "diploma advanced.txt", "diploma levels 1 and 2.txt", "elc.txt", "fcse.txt", "fsmq advanced pilot.txt", "fsmq foundation and intermediate pilot.txt"]
+  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt", "diploma advanced.txt", "diploma levels 1 and 2.txt", "elc.txt", "fcse.txt", "fsmq advanced pilot.txt", "fsmq foundation and intermediate pilot.txt", "fsmq.txt"]
   def self.scrape
     Dir.foreach('data/boundary/aqa') do |filename|
       # TODO Do all files
@@ -19,12 +19,12 @@ class Verdandi::Boundaries < Mongomatic::Base
       qualification = raw_qualification.gsub(/[()]/, '').gsub(/ [-–_] /, "_").gsub(/[- ]/, "_").downcase.to_sym
 
       # Split into pages
-      pages = pages.each_slice_from_approximate_value raw_qualification
+      pages = pages.each_slice_from_beginning_value raw_qualification
 
       # Remove the first page (just copy), and the top of the second page and the
       # bottom of the last page
       pages.shift
-      pages.shift if qualification == :gcse_units or qualification == :elc or qualification == :fcse
+      pages.shift if qualification == :gcse_units or qualification == :elc or qualification == :fcse or qualification == :fsmq
       pages.pop if qualification == :fcse or qualification == :fsmq_advanced_pilot or qualification == :fsmq_foundation_and_intermediate_pilot
       pages[0].slice_until_includes! "Code"
       pages[-1].reverse_slice_until_includes! "Version"
@@ -39,6 +39,7 @@ class Verdandi::Boundaries < Mongomatic::Base
 
         # If the first two lines are just copy, remove them
         2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark A* A B C D E F G"]
+        2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark A B C D E"]
         2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark Level 3 Level 2 Level 1"]
 
         page.last_slice_includes! "Scaled mark unit grade boundaries"
@@ -158,6 +159,10 @@ class Verdandi::Boundaries < Mongomatic::Base
                   when [5, :fsmq_foundation_and_intermediate_pilot]
                     [:a, :b, :c, :d, :e]
                   when [2, :fsmq_foundation_and_intermediate_pilot]
+                    [:a, :e]
+                  when [5, :fsmq]
+                    [:a, :b, :c, :d, :e]
+                  when [2, :fsmq]
                     [:a, :e]
                   else
                     pp line
