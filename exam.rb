@@ -5,6 +5,7 @@ class Verdandi::Exam < Mongomatic::Base
     :awarding_body,
     :qualification,
     :title,
+    :exam_code,
     :duration,
     :date,
     :start_time
