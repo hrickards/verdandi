@@ -8,7 +8,8 @@ class Verdandi::Exam < Mongomatic::Base
     :exam_code,
     :duration,
     :date,
-    :start_time
+    :start_time,
+    :subject
   ]
 
   # Get all exams and return as an array of hashes
@@ -33,6 +34,10 @@ class Verdandi::Exam < Mongomatic::Base
       ).map { |r| r.xpath("td[not(input)]").map { |d| d.text.strip.lstrip } }
     }.flatten(1)
 
+    # Add the subject name to each result
+    subject_name = REDIS.get('subject_name')
+    results.map! { |r| r << subject_name }
+
     # Turn each exam details into a hash, rather than array
     results.map! { |r| Hash[EXAM_DETAILS_KEYS.zip(r)] }
 
@@ -41,6 +46,7 @@ class Verdandi::Exam < Mongomatic::Base
 
     # Remove old data from REDIS
     REDIS.del 'raw_timetable_data'
+    REDIS.del 'subject_name'
   end
 
   # Scrape the timetables data
@@ -123,7 +129,7 @@ class Verdandi::Exam < Mongomatic::Base
         f[subject['name']] = subject['value']
 
         # Scrape all pages of exams for that subject
-        scrape_exam_page_and_look_for_next_link f.submit()
+        scrape_exam_page_and_look_for_next_link f.submit(), subject['value']
       end
 
       pbar.inc
@@ -136,9 +142,9 @@ class Verdandi::Exam < Mongomatic::Base
   end
 
   # Scrape all continuous pages of exams, starting with the one passed
-  def self.scrape_exam_page_and_look_for_next_link(page)
+  def self.scrape_exam_page_and_look_for_next_link(page, subject_name)
     # Actually scrape the page
-    scrape_exam_page page
+    scrape_exam_page page, subject_name
 
     # Find the next page button, if it exists
     next_button = page.parser.xpath(
@@ -154,16 +160,17 @@ class Verdandi::Exam < Mongomatic::Base
 
         page = f.submit()
       end
-      scrape_exam_page_and_look_for_next_link page
+      scrape_exam_page_and_look_for_next_link page, subject_name
     end
   end
 
   # Actually scrape exams from the passed page
-  def self.scrape_exam_page(page)
+  def self.scrape_exam_page(page, subject_name)
     # Get the results table
     results = page.parser.xpath("//table[@class='results']").first
 
     # Save it into Redis
     REDIS.rpush 'raw_timetable_data', results
+    REDIS.set 'subject_name', subject_name
   end
 end
