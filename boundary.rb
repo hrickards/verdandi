@@ -1,242 +1,218 @@
 # encoding: utf-8
 
 class Verdandi::Boundaries < Mongomatic::Base
-  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt", "diploma advanced.txt", "diploma levels 1 and 2.txt", "elc.txt", "fcse.txt", "fsmq advanced pilot.txt", "fsmq foundation and intermediate pilot.txt", "fsmq.txt", "functional skills.txt"]
+  WORKING_FILENAMES = ["a level.txt"]
   def self.scrape
+    # For each data file
     Dir.foreach('data/boundary/aqa') do |filename|
-      # TODO Do all files
+      # If it's actually a data file, and we know how to parse it
       next if filename == "." or filename == ".." or not WORKING_FILENAMES.include? filename
 
       # Get the text content of the PDF
-      text = File.open("data/boundary/aqa/#{filename}", "r:windows-1251:utf-8").read
+      file = File.open("data/boundary/aqa/#{filename}", "r:windows-1251:utf-8").read
 
-      # Split on newlines and strip whitespace
-      pages = text.split("\n").map { |line| line.strip.lstrip }
-
-      # Get the year and qualification
-      year = pages[5].split(" - ").last.split(" ")[0..1].join("_").downcase.to_sym
-      raw_qualification = pages[6]
-      qualification = raw_qualification.gsub(/[()]/, '').gsub(/ [-–_] /, "_").gsub(/[- ]/, "_").downcase.to_sym
-
-      raw_qualification = "Diploma" if raw_qualification == "Diploma – Levels 1 and 2"
-
-      # Split into pages
-      pages = pages.each_slice_from_beginning_value raw_qualification
-
-      # Remove the first page (just copy), and the top of the second page and the
-      # bottom of the last page
-      pages.shift
-      pages.shift if qualification == :gcse_units or qualification == :elc or qualification == :fcse or qualification == :fsmq or qualification == :diploma_levels_1_and_2
-      pages.pop if qualification == :fcse or qualification == :fsmq_advanced_pilot or qualification == :fsmq_foundation_and_intermediate_pilot
-      pages[0].slice_until_includes! "Code"
-      pages[-1].reverse_slice_until_includes! "Version"
-
-      if qualification == :diploma_levels_1_and_2 or qualification == :functional_skills
-        level_1_qualification = case qualification
-                                  when :diploma_levels_1_and_2
-                                    :diploma_level_1
-                                  when :functional_skills
-                                    :functional_skills_level_1
-                                  else
-                                    :level_1
-                                  end
-        level_2_qualification = case qualification
-                                  when :diploma_levels_1_and_2
-                                    :diploma_level_2
-                                  when :functional_skills
-                                    :functional_skills_level_2
-                                  else
-                                    :level_2
-                                  end
-        separator = case qualification
-                    when :functional_skills
-                      "Unit Code Title Max. Mark Level 2 Boundary"
-                    else
-                      "Version"
-                    end
-        include_separator = case qualification
-                            when :functional_skills
-                              true
-                            else
-                              false
-                            end
-
-        level_1 = pages.nested_slice_until_includes! separator, include_separator
-        level_1[-1].reverse_slice_until_includes! separator
-        level_1_details = parse_pages level_1, level_1_qualification
-
-        level_2 = pages
-        level_2[0].slice_until_includes! "Code"
-        level_2_details = parse_pages level_2, level_2_qualification
-
-        records = [{
-          :year => year,
-          :qualification => level_1_qualification,
-          :boundaries => level_1_details
-        },
-        {
-          :year => year,
-          :qualification => level_2_qualification,
-          :boundaries => level_2_details
-        }
-        ]
-      else
-        details = parse_pages pages, qualification
-
-        records = [{
-          :year => year,
-          :qualification => qualification,
-          :boundaries => details
-        }]
-      end
-
-      records.each { |r| r[:count] = r[:boundaries].count }.each { |r| r.delete :boundaries }
-      pp records
+      # Create a new parser, and parse the file
+      parser = BoundariesParse.new file
+      results = parser.parse
     end
-  end
-  
-  protected
-  def self.parse_pages(pages, qualification)
-    details = []
-    # Iterate over each page
-    pages.each do |page|
-      # If we only have copy, skip the page
-      next if page == ["Max. Scaled Mark Grade Boundaries and A* Conversion Points", "Code Title Scaled Mark A* A B C D E"] or page == ["Max Scaled Mark Grade Boundaries and A* Conversion Points", "Code Title Scaled Mark A* A B C D E"] or page == ["Maximum", "Code Title Scaled Mark A* A B C D E", "Scaled Mark Grade Boundaries"]
-
-      # If the first two lines are just copy, remove them
-      2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark A* A B C D E F G"]
-      2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark A* A B C"]
-      2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark A* A B"]
-      2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark A B C D E"]
-      2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark Level 3 Level 2 Level 1"]
-
-      page.last_slice_includes! "Scaled mark unit grade boundaries"
-      page.last_slice_includes! "Scaled mark grade boundaries"
-      page.last_slice_includes! "Scaled Mark Grade Boundaries"
-      page.mid_slice_until_includes! "Scaled mark unit grade boundaries", "Code Title Scaled Mark A* A B C D E"
-      page.mid_slice_until_includes! "Scaled mark unit grade boundaries", "Code Title Scaled Mark A* A B"
-      2.times { page.mid_slice_until_includes! "Diploma Principal Learning Units Level 1", "Code Title Scaled Mark A* A B" }
-
-      # Remove any lines where no candidates where entered or are invalid
-      page.select! { |line| not (line.include? "No candidates were entered for this unit" or line == "???" or line.include? "no candidates were entered for this unit" or line.empty?)}
-
-      # Fix duplicate lines
-      page.map! { |line| fix_duplicate_line line }
-
-      # Actually parse the details from each line
-      page.map! { |line| parse_line line, qualification }
-
-      # Add the boundaries
-      details += page
-    end
-    details
-  end
-
-  # Returns the line, unless everything is repeated after itself in the line,
-  # in which case it fixes that
-  def self.fix_duplicate_line(line)
-    words = line.split " "
-
-    first_duplicated = words[0] == words[1]
-
-    index_of_first_grade = words.each_with_index.select { |word, i| words[i-1].downcase != "unit" and (i...words.length).inject (true) { |r, j| r and (not words[j] =~ /\D+/ or words[j] == "--" or words[j] == "-") } }.map { |word, i| i }.min
-    begin
-      rest_words = words[2...index_of_first_grade]
-      rest_duplicated = rest_words[0...(rest_words.length/2)] == rest_words[(rest_words.length/2)..-1]
-
-      if first_duplicated and rest_duplicated
-        grades = words[index_of_first_grade..-1]
-        grades.map! { |g| g.scan(/./) }.map! { |g| g[0...(g.length/2)].join("") }
-        ([words[0]] + rest_words[0...(rest_words.length/2)] + grades).join " "
-      else
-        line
-      end
-    rescue Exception
-      raise "Failed fixing duplicate line on #{line}"
-    end
-  end
-
-  def self.parse_marks(marks)
-    marks.map { |mark| mark == "-" ? "-" : mark.to_i }
-  end
-
-  # Parses the details of a boundary from a passed line
-  def self.parse_line(line, qualification)
-    words = line.split(" ")
-    code = words.shift
-    line = words.join " "
-
-    marks_string, title = line.reverse.scan(/([\d -]+) (.*)/)[0]
-    marks_string.reverse!
-    title.reverse!
-
-    if title.split(" ")[-1].downcase == "unit" or ((title.split(" ")[-1].downcase == "written" or title.split(" ")[-1].downcase == "paper") and marks_string.split(" ")[0].match(/\d[a-zA-Z]?/)[0] == marks_string.split(" ")[0])
-      title = "#{title} #{marks_string.split(" ")[0]}"
-      marks_string = marks_string.split(" ")[1..-1].join " "
-    end
-
-
-
-
-
-    if [code, title, marks_string].inject (false) { |r, o| r or o.nil? or o.empty? }
-      pp code
-      pp title
-      pp marks_string
-      raise "Error parsing line - #{line}"
-    end
-
-    marks_string = marks_string.split " "
-    max_scaled_mark = marks_string.shift
-
-    marks_string = parse_marks marks_string
-
-    grade_names = case [marks_string.length, qualification]
-                  when [8, :gcse_units]
-                    [:a_star, :a, :b, :c, :d, :e, :f, :g]
-                  when [3, :elc]
-                    [:level_3, :level_2, :level_1]
-                  when [6, :a_level]
-                    [:a_star, :a, :b, :c, :d, :e]
-                  when [6, :applied_a_level]
-                    [:a_star, :a, :b, :c, :d, :e]
-                  when [6, :fsmq_advanced_pilot]
-                    [:a_star, :a, :b, :c, :d, :e]
-                  when [6, :diploma_advanced]
-                    [:a_star, :a, :b, :c, :d, :e]
-                  when [3, :diploma_level_1]
-                    [:a_star, :a, :b]
-                  when [4, :diploma_level_2]
-                    [:a_star, :a, :b, :c]
-                  when [3, :fcse]
-                    [:distinction, :merit, :pass]
-                  when [2, :a_level]
-                    [:a, :e]
-                  when [5, :fsmq_foundation_and_intermediate_pilot]
-                    [:a, :b, :c, :d, :e]
-                  when [2, :fsmq_foundation_and_intermediate_pilot]
-                    [:a, :e]
-                  when [5, :fsmq]
-                    [:a, :b, :c, :d, :e]
-                  when [2, :fsmq]
-                    [:a, :e]
-                  when [1, :functional_skills_level_1]
-                    [:level_1_boundary]
-                  when [1, :functional_skills_level_2]
-                    [:level_2_boundary]
-                  else
-                    pp line
-                    pp title
-                    pp marks_string
-                    raise "Invalid number of grades - #{marks_string.length}"
-                  end
-
-    grades = Hash[grade_names.zip marks_string]
-
-    details = [code, title, max_scaled_mark, grades]
-    labels = :code, :title, :max_scaled_mark, :grades
-    details = Hash[labels.zip details]
-
-    details
   end
 end
+
+class BoundariesParse
+  # Matches all valid boundary lines
+  PARSE_REGEXP = /^(\w+) ((1?\d?[^\d]+1?\d? )+)(([\d-]* )*[\d-]+)/
+  # Anything matching this is not a valid boundary line
+  COPY_REGEXP = /^(Unit)|(The Assessment and Qualifications Alliance)|(Copyright)|(Version)|(and a registered charity)|(Registered address)|(Published)/
+  # Anything matching this is not a grade name
+  GRADE_REGEXP = /(Code)|(Subject)|(Title)|(Scaled)|(Mark)/
+
+  # Initialisation method
+  def initialize(file)
+    @file = file
+  end
+
+  # Wrapper method to parse the file
+  def parse
+    preprocess_file
+
+    # Get the year, qualification and split string of the file
+    get_year
+    get_qualification
+    get_split_string
+
+    # Get the grade descriptors
+    get_grade_names
+
+    # Remove any non-valid boundary lines
+    remove_non_boundary_lines
+
+    # Actually parse the boundaries from each line
+    parse_boundaries
+
+    # Return a generated hash
+    make_details_hash
+  end
+
+  # Get the grade names
+  def get_grade_names
+    raw_grades = @lines[20].split(" ").select { |word| not word =~ GRADE_REGEXP }
+    @grade_names = raw_grades.map { |grade| parse_grade grade }
+  end
+
+  # Generate a hash of details about the boundaries
+  def make_details_hash
+    { :year => @year, :qualification => @qualification, :boundaries => @boundaries }
+  end
+
+  # Preprocess the file to split into an array, etc
+  def preprocess_file
+    @lines = @file.split("\n").map { |line| line.strip.lstrip }
+  end
+
+  # Get the year from a boundaries file
+  def get_year
+    @year = @lines[5].split(" - ").last.split(" ")[0..1].join("_").downcase.to_sym
+  end
+
+  # Get the qualification from a boundaries file
+  def get_qualification
+    #@qualification = case @lines[6]
+    #else
+      #@lines[6].gsub(/[()]/, '').gsub(/ [-–_] /, "_").gsub(/[- ]/, "_").downcase.to_sym
+    #end
+    @qualification = @lines[6].gsub(/[()]/, '').gsub(/ [-–_] /, "_").gsub(/[- ]/, "_").downcase.to_sym
+  end
+
+  # Get the split string from a boundaries file
+  def get_split_string
+    #@split_string = case @lines[6]
+    #else
+      #@lines[6]
+    #end
+    @split_string = @lines[6]
+  end
+
+  # Remove any non-valid boundary lines
+  def remove_non_boundary_lines
+    # Remove any lines that aren't valid boundary lines
+    @lines.select! { |line| is_valid_boundary_line line }
+  end
+
+  # Parse the boundaries from each line
+  def parse_boundaries
+    @boundaries = @lines.map { |line| parse_boundary_from_line line }
+  end
+
+  # Returns whether or not the line contains valid boundary details
+  def is_valid_boundary_line(line)
+    line =~ PARSE_REGEXP and not line =~ COPY_REGEXP
+  end
+
+  # Parse the boundary from a line
+  def parse_boundary_from_line(line)
+    code, title, _, marks, _ = line.scan(PARSE_REGEXP)[0]
+    title = title.strip
+    marks = parse_marks marks
+
+    max_scaled_mark = marks.shift
+    grades = zip_grades marks
+
+    {:code => code, :title => title, :max_scaled_mark => max_scaled_mark, :grades => grades}
+  end
+
+  # Convert numeric marks to numbers
+  def parse_marks(marks)
+    marks.split(" ").map { |mark| mark == "-" ? "-" : mark.to_i }
+  end
+
+  # Turn a grade string into a real grade
+  def parse_grade(grade)
+    grade.downcase.gsub("*", "_star").to_sym
+  end
+
+  # Turn an array of grades into a hash of grades
+  def zip_grades(grades)
+    case grades.length
+    when @grade_names.length
+      Hash[@grade_names.zip grades]
+    when 2
+      Hash[[@grade_names[1], @grade_names[-1]].zip grades]
+    else
+      raise "Hmm... #{grades.length} grades #{grades.length > @grade_names.length ? "seems to be a bit too many" : "doesn't seem to be enough"}"
+    end
+  end
+end
+
+  #def self.fix_duplicate_line(line)
+    #words = line.split " "
+
+    #first_duplicated = words[0] == words[1]
+
+    #index_of_first_grade = words.each_with_index.select { |word, i| words[i-1].downcase != "unit" and (i...words.length).inject (true) { |r, j| r and (not words[j] =~ /\D+/ or words[j] == "--" or words[j] == "-") } }.map { |word, i| i }.min
+    #begin
+      #rest_words = words[2...index_of_first_grade]
+      #rest_duplicated = rest_words[0...(rest_words.length/2)] == rest_words[(rest_words.length/2)..-1]
+
+      #if first_duplicated and rest_duplicated
+        #grades = words[index_of_first_grade..-1]
+        #grades.map! { |g| g.scan(/./) }.map! { |g| g[0...(g.length/2)].join("") }
+        #([words[0]] + rest_words[0...(rest_words.length/2)] + grades).join " "
+      #else
+        #line
+      #end
+    #rescue Exception
+      #raise "Failed fixing duplicate line on #{line}"
+    #end
+  #end
+
+    #grade_names = case [marks_string.length, qualification]
+                  #when [8, :gcse_units]
+                    #[:a_star, :a, :b, :c, :d, :e, :f, :g]
+                  #when [8, :gcse_non_unitised_subjects]
+                    #[:a_star, :a, :b, :c, :d, :e, :f, :g]
+                  #when [3, :elc]
+                    #[:level_3, :level_2, :level_1]
+                  #when [6, :a_level]
+                    #[:a_star, :a, :b, :c, :d, :e]
+                  #when [6, :applied_a_level]
+                    #[:a_star, :a, :b, :c, :d, :e]
+                  #when [6, :fsmq_advanced_pilot]
+                    #[:a_star, :a, :b, :c, :d, :e]
+                  #when [6, :diploma_advanced]
+                    #[:a_star, :a, :b, :c, :d, :e]
+                  #when [3, :diploma_level_1]
+                    #[:a_star, :a, :b]
+                  #when [4, :diploma_level_2]
+                    #[:a_star, :a, :b, :c]
+                  #when [3, :fcse]
+                    #[:distinction, :merit, :pass]
+                  #when [2, :a_level]
+                    #[:a, :e]
+                  #when [5, :fsmq_foundation_and_intermediate_pilot]
+                    #[:a, :b, :c, :d, :e]
+                  #when [2, :fsmq_foundation_and_intermediate_pilot]
+                    #[:a, :e]
+                  #when [5, :fsmq]
+                    #[:a, :b, :c, :d, :e]
+                  #when [2, :fsmq]
+                    #[:a, :e]
+                  #when [1, :functional_skills_level_1]
+                    #[:level_1_boundary]
+                  #when [1, :functional_skills_level_2]
+                    #[:level_2_boundary]
+                  #else
+                    #pp line
+                    #pp title
+                    #pp marks_string
+                    #raise "Invalid number of grades - #{marks_string.length}"
+                  #end
+
+    #grades = Hash[grade_names.zip marks_string]
+
+    #details = [code, title, max_scaled_mark, grades]
+    #labels = :code, :title, :max_scaled_mark, :grades
+    #details = Hash[labels.zip details]
+
+    #details
+  #end
+#end
