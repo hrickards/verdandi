@@ -18,66 +18,91 @@ class Verdandi::Boundaries < Mongomatic::Base
       raw_qualification = pages[6]
       qualification = raw_qualification.gsub(/[()]/, '').gsub(/ [-–_] /, "_").gsub(/[- ]/, "_").downcase.to_sym
 
+      raw_qualification = "Diploma" if raw_qualification == "Diploma – Levels 1 and 2"
+
       # Split into pages
       pages = pages.each_slice_from_beginning_value raw_qualification
 
       # Remove the first page (just copy), and the top of the second page and the
       # bottom of the last page
       pages.shift
-      pages.shift if qualification == :gcse_units or qualification == :elc or qualification == :fcse or qualification == :fsmq
+      pages.shift if qualification == :gcse_units or qualification == :elc or qualification == :fcse or qualification == :fsmq or qualification == :diploma_levels_1_and_2
       pages.pop if qualification == :fcse or qualification == :fsmq_advanced_pilot or qualification == :fsmq_foundation_and_intermediate_pilot
       pages[0].slice_until_includes! "Code"
       pages[-1].reverse_slice_until_includes! "Version"
 
-      # Initialise a blank array to store boundaries in
-      details = []
+      if qualification == :diploma_levels_1_and_2
+        level_1 = pages.nested_slice_until_includes! "Version"
+        level_1[-1].reverse_slice_until_includes! "Version"
+        level_1_details = parse_pages level_1, :diploma_level_1
 
-      # Iterate over each page
-      pages.each do |page|
-        # If we only have copy, skip the page
-        next if page == ["Max. Scaled Mark Grade Boundaries and A* Conversion Points", "Code Title Scaled Mark A* A B C D E"] or page == ["Max Scaled Mark Grade Boundaries and A* Conversion Points", "Code Title Scaled Mark A* A B C D E"] or page == ["Maximum", "Code Title Scaled Mark A* A B C D E", "Scaled Mark Grade Boundaries"]
+        level_2 = pages
+        level_2[0].slice_until_includes! "Code"
+        level_2_details = parse_pages level_2, :diploma_level_2
 
-        # If the first two lines are just copy, remove them
-        2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark A* A B C D E F G"]
-        2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark A B C D E"]
-        2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark Level 3 Level 2 Level 1"]
+        records = [{
+          :year => year,
+          :qualification => :diploma_level_1,
+          :boundaries => level_1_details
+        },
+        {
+          :year => year,
+          :qualification => :diploma_level_2,
+          :boundaries => level_2_details
+        }
+        ]
+      else
+        details = parse_pages pages, qualification
 
-        page.last_slice_includes! "Scaled mark unit grade boundaries"
-        page.last_slice_includes! "Scaled mark grade boundaries"
-        page.last_slice_includes! "Scaled Mark Grade Boundaries"
-        page.mid_slice_until_includes! "Scaled mark unit grade boundaries", "Code Title Scaled Mark A* A B C D E"
-        page.mid_slice_until_includes! "Scaled mark unit grade boundaries", "Code Title Scaled Mark A* A B"
-        2.times { page.mid_slice_until_includes! "Diploma Principal Learning Units Level 1", "Code Title Scaled Mark A* A B" }
-
-        # Remove any lines where no candidates where entered or are invalid
-        page.select! { |line| not (line.include? "No candidates were entered for this unit" or line == "???" or line.include? "no candidates were entered for this unit" or line.empty?)}
-
-        # Fix duplicate lines
-        page.map! { |line| fix_duplicate_line line }
-
-        # Actually parse the details from each line
-        page.map! { |line| parse_line line, qualification }
-
-        # Add the boundaries
-        details += page
+        records = [{
+          :year => year,
+          :qualification => qualification,
+          :boundaries => details
+        }]
       end
 
-      record = {
-        :year => year,
-        :qualification => qualification,
-        :boundaries => details
-      }
-
-      pp({ :year => year,
-        :qualification => qualification,
-        :count => details.count
-      })
-
-      #pp record
+      records.each { |r| r[:count] = r[:boundaries].count }.each { |r| r.delete :boundaries }
+      pp records
     end
   end
   
   protected
+  def self.parse_pages(pages, qualification)
+    details = []
+    # Iterate over each page
+    pages.each do |page|
+      # If we only have copy, skip the page
+      next if page == ["Max. Scaled Mark Grade Boundaries and A* Conversion Points", "Code Title Scaled Mark A* A B C D E"] or page == ["Max Scaled Mark Grade Boundaries and A* Conversion Points", "Code Title Scaled Mark A* A B C D E"] or page == ["Maximum", "Code Title Scaled Mark A* A B C D E", "Scaled Mark Grade Boundaries"]
+
+      # If the first two lines are just copy, remove them
+      2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark A* A B C D E F G"]
+      2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark A* A B C"]
+      2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark A* A B"]
+      2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark A B C D E"]
+      2.times { page.shift } if page[0..1] == ["Maximum Scaled Mark Grade Boundaries", "Code Title Scaled Mark Level 3 Level 2 Level 1"]
+
+      page.last_slice_includes! "Scaled mark unit grade boundaries"
+      page.last_slice_includes! "Scaled mark grade boundaries"
+      page.last_slice_includes! "Scaled Mark Grade Boundaries"
+      page.mid_slice_until_includes! "Scaled mark unit grade boundaries", "Code Title Scaled Mark A* A B C D E"
+      page.mid_slice_until_includes! "Scaled mark unit grade boundaries", "Code Title Scaled Mark A* A B"
+      2.times { page.mid_slice_until_includes! "Diploma Principal Learning Units Level 1", "Code Title Scaled Mark A* A B" }
+
+      # Remove any lines where no candidates where entered or are invalid
+      page.select! { |line| not (line.include? "No candidates were entered for this unit" or line == "???" or line.include? "no candidates were entered for this unit" or line.empty?)}
+
+      # Fix duplicate lines
+      page.map! { |line| fix_duplicate_line line }
+
+      # Actually parse the details from each line
+      page.map! { |line| parse_line line, qualification }
+
+      # Add the boundaries
+      details += page
+    end
+    details
+  end
+
   # Returns the line, unless everything is repeated after itself in the line,
   # in which case it fixes that
   def self.fix_duplicate_line(line)
@@ -150,8 +175,10 @@ class Verdandi::Boundaries < Mongomatic::Base
                     [:a_star, :a, :b, :c, :d, :e]
                   when [6, :diploma_advanced]
                     [:a_star, :a, :b, :c, :d, :e]
-                  when [3, :diploma_levels_1_and_2]
+                  when [3, :diploma_level_1]
                     [:a_star, :a, :b]
+                  when [4, :diploma_level_2]
+                    [:a_star, :a, :b, :c]
                   when [3, :fcse]
                     [:distinction, :merit, :pass]
                   when [2, :a_level]

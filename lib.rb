@@ -16,10 +16,18 @@ class Array
     self.index self.select { |l| l.include? string }.first
   end
 
+  def nested_index_of_element_that_includes(string)
+    self.index self.select { |l| not l.select { |m| m.include? string }.empty? }.first
+  end
+
   # Slices the array from the beginning until an element in the array includes
   # the passed string
   def slice_until_includes!(string)
     self.slice!(0..self.index_of_element_that_includes(string))
+  end
+
+  def nested_slice_until_includes!(string)
+    self.slice!(0..self.nested_index_of_element_that_includes(string))
   end
 
   # Slices the array from the end until an element in the array includes the
