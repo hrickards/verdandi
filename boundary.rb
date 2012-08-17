@@ -3,6 +3,9 @@
 class Verdandi::Boundaries < Mongomatic::Base
   WORKING_FILENAMES = ["a level.txt"]
   def self.scrape
+    # Drop old mongo results
+    drop
+
     # For each data file
     Dir.foreach('data/boundary/aqa') do |filename|
       # If it's actually a data file, and we know how to parse it
@@ -14,6 +17,9 @@ class Verdandi::Boundaries < Mongomatic::Base
       # Create a new parser, and parse the file
       parser = BoundariesParse.new file
       results = parser.parse
+
+      # Insert the results into Mongo
+      insert results
     end
   end
 end
