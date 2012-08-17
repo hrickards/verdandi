@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 class Verdandi::Boundaries < Mongomatic::Base
-  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt", "diploma advanced.txt", "diploma levels 1 and 2.txt", "elc.txt", "fcse.txt", "fsmq advanced pilot.txt"]
+  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt", "diploma advanced.txt", "diploma levels 1 and 2.txt", "elc.txt", "fcse.txt", "fsmq advanced pilot.txt", "fsmq foundation and intermediate pilot.txt"]
   def self.scrape
     Dir.foreach('data/boundary/aqa') do |filename|
       # TODO Do all files
@@ -25,7 +25,7 @@ class Verdandi::Boundaries < Mongomatic::Base
       # bottom of the last page
       pages.shift
       pages.shift if qualification == :gcse_units or qualification == :elc or qualification == :fcse
-      pages.pop if qualification == :fcse or qualification == :fsmq_advanced_pilot
+      pages.pop if qualification == :fcse or qualification == :fsmq_advanced_pilot or qualification == :fsmq_foundation_and_intermediate_pilot
       pages[0].slice_until_includes! "Code"
       pages[-1].reverse_slice_until_includes! "Version"
 
@@ -154,6 +154,10 @@ class Verdandi::Boundaries < Mongomatic::Base
                   when [3, :fcse]
                     [:distinction, :merit, :pass]
                   when [2, :a_level]
+                    [:a, :e]
+                  when [5, :fsmq_foundation_and_intermediate_pilot]
+                    [:a, :b, :c, :d, :e]
+                  when [2, :fsmq_foundation_and_intermediate_pilot]
                     [:a, :e]
                   else
                     pp line
