@@ -12,6 +12,10 @@ task :subjects do
   SubjectParse.scrape
 end
 
+task :console do
+  binding.pry
+end
+
 task :default => [:exams, :boundaries, :subjects] do
   puts "Running..."
 end
