@@ -24,7 +24,7 @@ class Verdandi::Boundary < Mongomatic::Base
   end
 end
 
-class BoundariesParse
+class Verdandi::BoundariesParse
   # Matches all valid boundary lines
   PARSE_REGEXP = /^(\w+) ((1?\d?[^\d]+1?\d? )+)(([\d-]* )*[\d-]+)/
   # Anything matching this is not a valid boundary line
