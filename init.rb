@@ -11,6 +11,7 @@ end
 
 require_relative 'exam'
 require_relative 'boundary'
+require_relative 'subject'
 
 include Verdandi
 

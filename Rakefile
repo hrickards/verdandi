@@ -8,6 +8,10 @@ task :boundaries do
   Boundary.scrape
 end
 
-task :default => [:exams] do
+task :subjects do
+  SubjectParse.scrape
+end
+
+task :default => [:exams, :boundaries, :subjects] do
   puts "Running..."
 end
