@@ -26,8 +26,8 @@ class Array
     self.slice!(0..self.index_of_element_that_includes(string))
   end
 
-  def nested_slice_until_includes!(string)
-    self.slice!(0..self.nested_index_of_element_that_includes(string))
+  def nested_slice_until_includes!(string, include_separator)
+    self.slice!(0..self.nested_index_of_element_that_includes(string)-(include_separator ? 1 : 0))
   end
 
   # Slices the array from the end until an element in the array includes the

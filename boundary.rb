@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 class Verdandi::Boundaries < Mongomatic::Base
-  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt", "diploma advanced.txt", "diploma levels 1 and 2.txt", "elc.txt", "fcse.txt", "fsmq advanced pilot.txt", "fsmq foundation and intermediate pilot.txt", "fsmq.txt"]
+  WORKING_FILENAMES = ["gcse units.txt", "a level.txt", "applied a level.txt", "diploma advanced.txt", "diploma levels 1 and 2.txt", "elc.txt", "fcse.txt", "fsmq advanced pilot.txt", "fsmq foundation and intermediate pilot.txt", "fsmq.txt", "functional skills.txt"]
   def self.scrape
     Dir.foreach('data/boundary/aqa') do |filename|
       # TODO Do all files
@@ -31,23 +31,52 @@ class Verdandi::Boundaries < Mongomatic::Base
       pages[0].slice_until_includes! "Code"
       pages[-1].reverse_slice_until_includes! "Version"
 
-      if qualification == :diploma_levels_1_and_2
-        level_1 = pages.nested_slice_until_includes! "Version"
-        level_1[-1].reverse_slice_until_includes! "Version"
-        level_1_details = parse_pages level_1, :diploma_level_1
+      if qualification == :diploma_levels_1_and_2 or qualification == :functional_skills
+        level_1_qualification = case qualification
+                                  when :diploma_levels_1_and_2
+                                    :diploma_level_1
+                                  when :functional_skills
+                                    :functional_skills_level_1
+                                  else
+                                    :level_1
+                                  end
+        level_2_qualification = case qualification
+                                  when :diploma_levels_1_and_2
+                                    :diploma_level_2
+                                  when :functional_skills
+                                    :functional_skills_level_2
+                                  else
+                                    :level_2
+                                  end
+        separator = case qualification
+                    when :functional_skills
+                      "Unit Code Title Max. Mark Level 2 Boundary"
+                    else
+                      "Version"
+                    end
+        include_separator = case qualification
+                            when :functional_skills
+                              true
+                            else
+                              false
+                            end
+
+        level_1 = pages.nested_slice_until_includes! separator, include_separator
+        level_1[-1].reverse_slice_until_includes! separator
+        level_1_details = parse_pages level_1, level_1_qualification
 
         level_2 = pages
         level_2[0].slice_until_includes! "Code"
-        level_2_details = parse_pages level_2, :diploma_level_2
+        level_2_details = parse_pages level_2, level_2_qualification
 
         records = [{
           :year => year,
-          :qualification => :diploma_level_1,
+          :qualification => level_1_qualification,
           :boundaries => level_1_details
         },
         {
           :year => year,
-          :qualification => :diploma_level_2,
+          :qualification => level_2_qualification,
           :boundaries => level_2_details
         }
         ]
@@ -191,6 +220,10 @@ class Verdandi::Boundaries < Mongomatic::Base
                     [:a, :b, :c, :d, :e]
                   when [2, :fsmq]
                     [:a, :e]
+                  when [1, :functional_skills_level_1]
+                    [:level_1_boundary]
+                  when [1, :functional_skills_level_2]
+                    [:level_2_boundary]
                   else
                     pp line
                     pp title
