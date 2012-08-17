@@ -1,4 +1,10 @@
-class Verdandi::Exam < Mongomatic::Base
+module Verdandi
+  def scrape_exams
+    ExamsScraper.scrape
+  end
+end
+
+class Verdandi::ExamsScraper
   BASE_TIMETABLE_URL = "http://www.education.gov.uk/comptimetable/"
   EXAM_DETAILS_KEYS = [
     :session,
@@ -11,11 +17,6 @@ class Verdandi::Exam < Mongomatic::Base
     :start_time,
     :subject
   ]
-
-  # Get all exams and return as an array of hashes
-  def self.all
-    Exam.find.map { |e| e.to_hash }
-  end
 
   # Parse the scraped timetables data and store it into Mongo
   def self.parse
@@ -42,7 +43,7 @@ class Verdandi::Exam < Mongomatic::Base
     results.map! { |r| Hash[EXAM_DETAILS_KEYS.zip(r)] }
 
     # Store each result in Mongo
-    results.each { |r| insert r }
+    results.each { |r| MONGO['raw_exams'].insert r }
 
     # Remove old data from REDIS
     REDIS.del 'raw_timetable_data'
@@ -52,7 +53,7 @@ class Verdandi::Exam < Mongomatic::Base
   # Scrape the timetables data
   def self.scrape
     # Remove old Mongo data
-    drop
+    MONGO['raw_exams'].drop
 
     # Remove any old Redis data
     REDIS.del 'raw_timetable_data'

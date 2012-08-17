@@ -1,37 +1,27 @@
-class Verdandi::Subject < Mongomatic::Base
-  def self.all
-    parse_find find
+module Verdandi
+  def parse_subjects
+    SubjectParser.parse
   end
 end
 
-class Verdandi::BaseSubject < Mongomatic::Base
-  def self.all_array
-    parse_find find
-  end
-
-  def self.find_one_hash(id)
-    details = parse_find_hash find_one(BSON::ObjectId(id)).to_hash
-  end
-end
-
-class Verdandi::SubjectParse 
+class Verdandi::SubjectParser
   NO_CAPITALISE_WORDS = %w{and for of}
   ACRONYMS = {
     'ict' => 'information and communication technology'
   }
 
-  def self.scrape
-    BaseSubject.drop
-    Subject.drop
+  def self.parse
+    MONGO['raw_base_subjects'].drop
+    MONGO['raw_subjects'].drop
 
-    subjects = Exam.all.map { |exam| exam["subject"] }
+    subjects = MONGO['raw_exams'].find.map { |exam| exam["subject"] }
     base_subjects = subjects.map { |subject| base_subject subject }.uniq.sort
 
     subjects.map! { |subject| {:name => subject, :base => base_subject(subject) } }.uniq!
-    subjects.each { |subject| Subject.insert subject }
+    subjects.each { |subject| MONGO['raw_subjects'].insert subject }
 
     base_subjects.map! { |subject| {:name => subject } }
-    base_subjects.each { |base_subject| BaseSubject.insert base_subject }
+    base_subjects.each { |base_subject| MONGO['raw_base_subjects'].insert base_subject }
   end
 
   protected

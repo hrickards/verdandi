@@ -1,15 +1,15 @@
 require_relative 'init'
 
 task :exams do
-  Exam.scrape
+  scrape_exams
 end
 
 task :boundaries do
-  Boundary.scrape
+  parse_boundaries
 end
 
 task :subjects do
-  SubjectParse.scrape
+  parse_subjects
 end
 
 task :console do

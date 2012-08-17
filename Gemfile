@@ -2,7 +2,7 @@ source :rubygems
 
 gem 'mechanize'
 gem 'redis'
-gem 'mongomatic'
+gem 'mongo'
 gem 'bson_ext'
 gem 'grape'
 gem 'builder'

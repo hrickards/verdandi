@@ -1,10 +1,10 @@
 # encoding: utf-8
 
-class Verdandi::Boundary < Mongomatic::Base
+module Verdandi
   WORKING_FILENAMES = ["a level.txt"]
-  def self.scrape
+  def parse_boundaries
     # Drop old mongo results
-    drop
+    MONGO['raw_boundaries'].drop
 
     # For each data file
     Dir.foreach('data/boundary/aqa') do |filename|
@@ -15,16 +15,16 @@ class Verdandi::Boundary < Mongomatic::Base
       file = File.open("data/boundary/aqa/#{filename}", "r:windows-1251:utf-8").read
 
       # Create a new parser, and parse the file
-      parser = BoundariesParse.new file
+      parser = BoundariesParser.new file
       results = parser.parse
 
       # Insert the results into Mongo
-      insert results
+      MONGO['raw_boundaries'].insert results
     end
   end
 end
 
-class Verdandi::BoundariesParse
+class Verdandi::BoundariesParser
   # Matches all valid boundary lines
   PARSE_REGEXP = /^(\w+) ((1?\d?[^\d]+1?\d? )+)(([\d-]* )*[\d-]+)/
   # Anything matching this is not a valid boundary line
