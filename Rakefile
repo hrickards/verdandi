@@ -12,10 +12,14 @@ task :subjects do
   parse_subjects
 end
 
+task :parse do
+  parse
+end
+
 task :console do
   binding.pry
 end
 
-task :default => [:exams, :boundaries, :subjects] do
+task :default => [:exams, :boundaries, :subjects, :parse] do
   puts "Running..."
 end

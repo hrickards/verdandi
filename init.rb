@@ -12,6 +12,7 @@ end
 require_relative 'scrape/exam'
 require_relative 'scrape/boundary'
 require_relative 'scrape/subject'
+require_relative 'scrape/parse'
 
 include Verdandi
 
