@@ -9,6 +9,8 @@ require 'pp'
 module Verdandi
 end
 
+require_relative 'qualification'
+
 require_relative 'scrape/exam'
 require_relative 'scrape/boundary'
 require_relative 'scrape/subject'
