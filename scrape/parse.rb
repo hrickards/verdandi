@@ -13,7 +13,8 @@ module Verdandi
 
     specs = specs.map { |spec| parse_specification spec }
 
-    pp specs.first
+    Qualification.delete_all
+    Qualification.collection.insert specs
   end
 
   protected
