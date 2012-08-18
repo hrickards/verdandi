@@ -4,27 +4,33 @@ module Verdandi
     exams_codes = MONGO["raw_exams"].find.map { |e| e["exam_code"] }
     codes = (boundaries_codes + exams_codes).uniq
 
-    codes = ["ACCN1", "ACCN2", "BIOL1"]
-
     flattened_units = codes.map { |code| ParseUnit.new(code).parse }
+    # TODO: Make it so we don't need to do this - identify why some boundaries
+    # have no exams
+    flattened_units.select! { |unit| not (unit[:subject].nil? or unit[:subject].empty?) }
+
     specs = unflatten_units flattened_units
+
     specs = specs.map { |spec| parse_specification spec }
 
-
-    pp specs
+    pp specs.first
   end
 
   protected
   def unflatten_units(unflattened_units)
-    unflattened_units.map { |u| u[:subject] }.uniq.map { |subject| {:subject => subject, :units => unflattened_units.find_all { |u| u[:subject] == subject } } }
+    subjects = unflattened_units.map { |u| u[:subject] }.uniq
+    subjects.map { |s| {:subject => s, :units => find_units(unflattened_units, s) } }
+  end
+
+  def find_units(units, s)
+    units.find_all { |u| u[:subject] == s }
   end
 
   def parse_specification(spec)
     %w{qualification awarding_body}.each { |s| move_out_of_units spec, s.to_sym }
     spec[:units].map { |unit| unit.delete :subject }
+    spec[:base] = MONGO['raw_subjects'].find_one(:name => spec[:subject])["base"]
 
-    subject_details = MONGO['raw_subjects'].find_one(:name => spec[:subject])
-    spec[:base] = subject_details["base"] if subject_details
     spec
   end
 
