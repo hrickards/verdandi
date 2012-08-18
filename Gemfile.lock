@@ -44,7 +44,6 @@ GEM
     rack (1.4.1)
     rack-mount (0.8.3)
       rack (>= 1.0.0)
-    redis (3.0.1)
     ruby-progressbar (0.11.0)
     slop (3.3.2)
     thin (1.4.1)
@@ -68,6 +67,5 @@ DEPENDENCIES
   mechanize
   mongo
   pry
-  redis
   ruby-progressbar
   thin

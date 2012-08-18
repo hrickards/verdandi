@@ -19,44 +19,33 @@ class Verdandi::ExamsScraper
   ]
 
   # Parse the scraped timetables data and store it into Mongo
-  def self.parse
+  def self.parse(results, subject_name)
     # Get all raw HTML tables of results from Redis, convert them to a
     # Nokogiri structure that's useable, get all cells in each row that are
     # results cells, tidy up the text inside each cell and finally flatten
     # the results so that each element in results contains exam details, not
     # an array of all exam details in one of the HTML tables.
-    results = REDIS.lrange('raw_timetable_data', 0, -1).map { |t|
-      Nokogiri::HTML(t).xpath(
+    results = results.xpath(
         '//table[
           @id="UCResultsTable_resultsTbl"
         ]//tr[
           td/@class = "results noprint"
         ]'
       ).map { |r| r.xpath("td[not(input)]").map { |d| d.text.strip.lstrip } }
-    }.flatten(1)
 
     # Add the subject name to each result
-    subject_name = REDIS.get('subject_name')
     results.map! { |r| r << subject_name }
 
     # Turn each exam details into a hash, rather than array
     results.map! { |r| Hash[EXAM_DETAILS_KEYS.zip(r)] }
 
-    # Store each result in Mongo
-    results.each { |r| MONGO['raw_exams'].insert r }
-
-    # Remove old data from REDIS
-    REDIS.del 'raw_timetable_data'
-    REDIS.del 'subject_name'
+    results
   end
 
   # Scrape the timetables data
   def self.scrape
     # Remove old Mongo data
     MONGO['raw_exams'].drop
-
-    # Remove any old Redis data
-    REDIS.del 'raw_timetable_data'
 
     # Initialise a new browser to scrape the timetables with, using a
     # believable user agent. They don't seem to be checking user agents at
@@ -72,11 +61,10 @@ class Verdandi::ExamsScraper
     page.form_with(:name => 'aspnetForm') do |f|
       f['ctl00$mainContent$accept.x'] = 50
       f['ctl00$mainContent$accept.y'] = 19
-      page = f.submit()
-    end
 
-    # Scrape all the exams in all the sessions
-    scrape_all_exam_sessions page
+      # Scrape all the exams in all the sessions
+      scrape_all_exam_sessions f.submit()
+    end
   end
 
   protected
@@ -109,37 +97,35 @@ class Verdandi::ExamsScraper
       f['UCBasicSearch2$UCSearchByLetter$btnAll'] = 'All'
 
       page = f.submit()
-    end
 
-    # Get a list of all subjects
-    subjects = page.parser.xpath(
-      '//input[
+      # Get a list of all subjects
+      subjects = page.parser.xpath(
+        '//input[
         contains(@name, "UCBasicSearch2$UCPostBackSubjectList$subjectsRepeater")
         and contains(@name, "SubjectList")
         and contains(@name, "subjectName")
       ]'
-    )
+      )
 
-    # Initialise a new progress bar to show progress visually
-    pbar = ProgressBar.new "Session #{session_number}", subjects.count
+      # Initialise a new progress bar to show progress visually
+      pbar = ProgressBar.new "Session #{session_number}", subjects.count
 
-    # Scrape the exams for each subject
-    subjects.each do |subject|
-      # The form POST data is even weirder here
-      page.form_with(:name => 'search') do |f|
-        f[subject['name']] = subject['value']
+      # Scrape the exams for each subject
+      subjects.each do |subject|
+        pbar.inc
 
-        # Scrape all pages of exams for that subject
-        scrape_exam_page_and_look_for_next_link f.submit(), subject['value']
+        # The form POST data is even weirder here
+        page.form_with(:name => 'search') do |f|
+          f[subject['name']] = subject['value']
+
+          # Scrape all pages of exams for that subject
+          page = f.submit()
+          scrape_exam_page_and_look_for_next_link page, subject['value']
+        end
       end
 
-      pbar.inc
-
-      # Parse the data we've just put in
-      parse
+      pbar.finish
     end
-
-    pbar.finish
   end
 
   # Scrape all continuous pages of exams, starting with the one passed
@@ -159,19 +145,29 @@ class Verdandi::ExamsScraper
       page.form_with(:name => 'search') do |f|
         f['UCResultsTable$topNavigation$btnNext'] = 'Next >'
 
-        page = f.submit()
+        scrape_exam_page_and_look_for_next_link f.submit(), subject_name
       end
-      scrape_exam_page_and_look_for_next_link page, subject_name
     end
   end
 
   # Actually scrape exams from the passed page
   def self.scrape_exam_page(page, subject_name)
-    # Get the results table
-    results = page.parser.xpath("//table[@class='results']").first
+    unless page.parser.xpath("//div[@id='UCResultsTable_pnlNoMoreResults']").empty?
+      puts "Hmm... no results. That's strange."
+      return
+    end
 
-    # Save it into Redis
-    REDIS.rpush 'raw_timetable_data', results
-    REDIS.set 'subject_name', subject_name
+    begin
+      # Get the results table
+      results = page.parser.xpath("//table[@class='results']").first
+
+      results = parse results, subject_name
+      
+      # Store each result in Mongo
+      results.each { |r| MONGO['raw_exams'].insert r }
+    rescue Exception => e
+      pp e
+      binding.pry
+    end
   end
 end

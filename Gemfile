@@ -1,7 +1,6 @@
 source :rubygems
 
 gem 'mechanize'
-gem 'redis'
 gem 'mongo'
 gem 'bson_ext'
 gem 'grape'
