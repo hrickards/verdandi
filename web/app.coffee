@@ -24,7 +24,7 @@ app.configure 'production', ->
 # -----------------------------------------------------------------------------
 
 app.get '/api/qualifications', (request, response) ->
-  Qualification.find {}, (error, qualifications) ->
+  Qualification.find {}, 'subject qualification awarding_body base', (error, qualifications) ->
     response.send qualifications
 
 app.get '/api/qualifications/:id', (request, response) ->
