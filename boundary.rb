@@ -1,4 +1,4 @@
-class Boundary
+class Verdandi::Boundary
   include Mongoid::Document
 
   field "title", type: String

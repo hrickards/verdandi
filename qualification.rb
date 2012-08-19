@@ -1,4 +1,4 @@
-class Qualification
+class Verdandi::Qualification
   include Mongoid::Document
 
   field "subject", type: String

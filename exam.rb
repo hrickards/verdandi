@@ -1,4 +1,4 @@
-class Exam
+class Verdandi::Exam
   include Mongoid::Document
 
   field "title", type: String
