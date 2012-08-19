@@ -22,7 +22,7 @@ include Verdandi
 
 
 # Database config
-mongo_uri = 'mongodb://localhost:27017/verdandi'
+mongo_uri = URI.parse 'mongodb://localhost:27017/verdandi'
 MONGO = Mongo::Connection.new(mongo_uri.host, mongo_uri.port).db(mongo_uri.path.gsub /^\//, '')
 MONGO.authenticate mongo_uri.user, mongo_uri.password if mongo_uri.user and mongo_uri.password
 
