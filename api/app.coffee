@@ -16,7 +16,6 @@ app = module.exports = express()
 # -----------------------------------------------------------------
 
 app.configure ->
-  app.use express.static("#{__dirname}/views")
   app.use app.router
 
 app.configure 'development', ->
@@ -29,9 +28,6 @@ app.configure 'production', ->
 # -----------------------------------------------------------------
 # Routes
 # -----------------------------------------------------------------
-
-app.get '/', (request, response) ->
-  response.render 'index'
 
 app.get '/api/qualifications', (request, response) ->
   offset = if request.query["offset"]? then request.query["offset"] else 0
