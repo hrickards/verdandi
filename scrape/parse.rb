@@ -15,6 +15,12 @@ module Verdandi
 
     Qualification.delete_all
     Qualification.collection.insert specs
+
+    Boundary.delete_all
+    Boundary.collection.insert specs.map { |spec| parse_boundaries spec }.flatten.select { |boundaries| not (boundaries.nil? or boundaries.empty?) }
+
+    Exam.delete_all
+    Exam.collection.insert specs.map { |spec| parse_exams spec }.flatten.select { |exams| not (exams.nil? or exams.empty?) }
   end
 
   protected
@@ -40,6 +46,14 @@ module Verdandi
     spec[:units].map { |unit| unit.delete symbol }
 
     spec.delete symbol unless spec[symbol]
+  end
+
+  def parse_boundaries(spec)
+    spec[:units].select { |unit| not (unit[:boundaries].nil? or unit[:boundaries].empty?) }.map { |unit| {:subject => spec[:subject], :qualification => spec[:qualification], :awarding_body => spec[:awarding_body], :base => spec[:base], :code => unit[:code], :title => unit[:title], :boundaries => unit[:boundaries] } }
+  end
+
+  def parse_exams(spec)
+    spec[:units].select { |unit| not (unit[:exams].nil? or unit[:exams].empty?) }.map { |unit| {:subject => spec[:subject], :qualification => spec[:qualification], :awarding_body => spec[:awarding_body], :base => spec[:base], :code => unit[:code], :title => unit[:title], :exams => unit[:exams] } }
   end
 end
 
