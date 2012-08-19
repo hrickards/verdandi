@@ -1,38 +1,37 @@
-express  = require 'express'
-mongoose = require 'mongoose'
+express       = require 'express'
+path          = require 'path'
+Qualification = require './qualification.coffee'
 
-db     = mongoose.createConnection '127.0.0.1', 'verdandi'
-schema = mongoose.Schema
-           _id                 : mongoose.Schema.Types.ObjectId,
-           subject             : String,
-           qualification       : String,
-           awarding_body       : String,
-           base                : String,
-           units               : [
-             title             : String,
-             code              : String,
-             exams             : [
-               start_time      : String,
-               date            : String,
-               duration        : String,
-               session         : String
-             ],
-             boundaries        : [
-               season          : String,
-               max_scaled_mark : String,
-               boundaries      : {}
-             ]
-           ]
-Qualification = db.model 'qualification', schema
+app = module.exports = express()
 
-app = express()
+
+# -----------------------------------------------------------------------------
+#  Configuration
+#  Very much based upon/copied from gh:austintaylor/batman-express
+# -----------------------------------------------------------------------------
+
+app.configure ->
+  app.use app.router
+
+app.configure 'development', ->
+  app.use express.errorHandler dumpExceptions: true, showStack: true
+
+app.configure 'production', ->
+  app.use express.errorHandler()
+
+# -----------------------------------------------------------------------------
+# Routes
+# -----------------------------------------------------------------------------
 
 app.get '/api/qualifications', (request, response) ->
   Qualification.find {}, (error, qualifications) ->
     response.send qualifications
 
-app.use express.errorHandler
-  dumpExceptions: true,
-  showStack: true
+app.get '/api/qualifications/:id', (request, response) ->
+  Qualification.findById request.param('id'), (error, qualification) ->
+    response.send qualification
 
+# -----------------------------------------------------------------------------
+# App setup
+# -----------------------------------------------------------------------------
 app.listen 3000
