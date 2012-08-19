@@ -1,0 +1,10 @@
+{
+  "name"         : "verdandi",
+  "description"  : "Exam details, grade boundaries and various related things.",
+  "version"      : "0.0.1",
+  "private"      : true,
+  "dependencies" : {
+    "express"    : "3.0.0rc3",
+    "mongoose"   : "3.0.2"
+  }
+}
