@@ -19,17 +19,21 @@ app.configure 'development', ->
 app.configure 'production', ->
   app.use express.errorHandler()
 
+
 # -----------------------------------------------------------------------------
 # Routes
 # -----------------------------------------------------------------------------
 
 app.get '/api/qualifications', (request, response) ->
-  Qualification.find {}, 'subject qualification awarding_body base', (error, qualifications) ->
+  offset = if request.query["offset"]? then request.query["offset"] else 0
+  limit = if request.query["limit"]? then request.query["limit"] else 5
+  Qualification.find {}, 'subject qualification awarding_body base', { skip: offset, limit: limit }, (error, qualifications) ->
     response.send qualifications
 
 app.get '/api/qualifications/:id', (request, response) ->
   Qualification.findById request.param('id'), (error, qualification) ->
     response.send qualification
+
 
 # -----------------------------------------------------------------------------
 # App setup
