@@ -1,6 +1,11 @@
 express       = require 'express'
 path          = require 'path'
-Qualification = require './qualification.coffee'
+models        = require './models.coffee'
+
+Qualification = models.Qualification
+Boundary      = models.Boundary
+Exam          = models.Exam
+
 
 app = module.exports = express()
 
@@ -33,6 +38,18 @@ app.get '/api/qualifications', (request, response) ->
 app.get '/api/qualifications/:id', (request, response) ->
   Qualification.findById request.param('id'), (error, qualification) ->
     response.send qualification
+
+app.get '/api/boundaries', (request, response) ->
+  offset = if request.query["offset"]? then request.query["offset"] else 0
+  limit = if request.query["limit"]? then request.query["limit"] else 5
+  Boundary.find {}, null, { skip: offset, limit: limit }, (error, boundaries) ->
+    response.send boundaries
+
+app.get '/api/exams', (request, response) ->
+  offset = if request.query["offset"]? then request.query["offset"] else 0
+  limit = if request.query["limit"]? then request.query["limit"] else 5
+  Exam.find {}, null, { skip: offset, limit: limit }, (error, exams) ->
+    response.send exams
 
 
 # -----------------------------------------------------------------------------
