@@ -101,10 +101,10 @@ class Verdandi::ParseUnit
         @sub_units = []
       else
         su_codes = su_results.map { |y, b| b["sub_units"].map { |su| su["code"] } }.flatten.uniq
-        @sub_units = su_codes.map { |code| su_results.map { |y, b| [y, b["sub_units"].select { |su| su["code"] == code }] }.select { |d, e| not (e.nil? or e.empty?) } }.map { |su| { :title => su[0][1][0]["title"], :code => su[0][1][0]["code"], :boundaries => su.map { |suu| {:season => suu[0], :max_scaled_mark => suu[1][0]["max_scaled_mark"], :boundaries => suu[1][0]["grades"] } } } }
+        @sub_units = su_codes.map { |code| su_results.map { |y, b| [y, b["sub_units"].select { |su| su["code"] == code }] }.select { |d, e| not (e.nil? or e.empty?) } }.map { |su| { :title => su[0][1][0]["title"], :code => su[0][1][0]["code"], :boundaries => su.map { |suu| {:season => parse_boundary_season(suu[0]), :max_scaled_mark => suu[1][0]["max_scaled_mark"], :boundaries => suu[1][0]["grades"] } } } }
       end
 
-      @boundaries = right_results.map { |year, boundaries| {:season => year, :boundaries => boundaries["grades"], :max_scaled_mark => boundaries["max_scaled_mark"] } }
+      @boundaries = right_results.map { |year, boundaries| {:season => parse_boundary_season(year), :boundaries => boundaries["grades"], :max_scaled_mark => boundaries["max_scaled_mark"] } }
 
       one_result = MONGO["raw_boundaries"].find_one('boundaries.code' => @code)
       @qualification ||= one_result['qualification']
@@ -115,7 +115,7 @@ class Verdandi::ParseUnit
   def get_exams_details
     results = MONGO["raw_exams"].find('exam_code' => @code)
     if results.count > 0
-      @exams ||= results.map { |e| {:session => e["session"], :duration => e["duration"], :date => e["date"], :start_time => e["start_time"] } }
+      @exams ||= results.map { |e| {:season => parse_exam_season(e["session"]), :duration => e["duration"], :date => e["date"], :start_time => e["start_time"] } }
 
       one_result = MONGO["raw_exams"].find_one('exam_code' => @code)
       @qualification ||= parse_qualification one_result['qualification']
@@ -149,10 +149,18 @@ class Verdandi::ParseUnit
   def add_sub_unit_exams_details(unit)
     results = MONGO["raw_exams"].find('exam_code' => unit[:code])
     if results.count > 0
-      unit[:exams] = results.map { |e| {:session => e["session"], :duration => e["duration"], :date => e["date"], :start_time => e["start_time"] } } 
+      unit[:exams] = results.map { |e| {:season => parse_exam_season(e["session"]), :duration => e["duration"], :date => e["date"], :start_time => e["start_time"] } } 
       @subject ||= MONGO["raw_exams"].find_one('exam_code' => unit[:code])['subject']
     end
 
     unit
+  end
+
+  def parse_exam_season(season)
+    season.scan(/([\w\s]*)( \[\w*\])?/)[0][0].strip
+  end
+
+  def parse_boundary_season(season)
+    season.to_s.gsub("_", " ").capitalize.gsub(/(June)|(July)/, "Summer")
   end
 end
