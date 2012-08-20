@@ -35,6 +35,7 @@ buildQuery = (request) ->
   size = 10 unless size?
 
   fields = request.query["fields"]
+  fields = fields.split(",") if fields?
   fields = [fields] if fields? and typeof(fields) == "string"
 
   query = request.query["query"]
