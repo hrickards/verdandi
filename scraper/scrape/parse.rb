@@ -17,10 +17,10 @@ module Verdandi
     Qualification.collection.insert specs
 
     Boundary.delete_all
-    Boundary.collection.insert specs.map { |spec| parse_boundaries spec }.flatten.select { |boundaries| not (boundaries.nil? or boundaries.empty?) }
+    Boundary.collection.insert specs.map { |spec| parse_boundaries_from_units spec }.flatten.select { |boundaries| not (boundaries.nil? or boundaries.empty?) }
 
     Exam.delete_all
-    Exam.collection.insert specs.map { |spec| parse_exams spec }.flatten.select { |exams| not (exams.nil? or exams.empty?) }
+    Exam.collection.insert specs.map { |spec| parse_exams_from_units spec }.flatten.select { |exams| not (exams.nil? or exams.empty?) }
   end
 
   protected
@@ -30,7 +30,10 @@ module Verdandi
   end
 
   def find_units(units, s)
-    units.find_all { |u| u[:subject] == s }
+    subject_units = units.find_all { |u| u[:subject] == s }
+
+    sub_unit_codes = subject_units.map { |unit| unit[:sub_units].nil? ? [] : unit[:sub_units].map { |su| su[:code] } }.flatten
+    subject_units.select { |u| not sub_unit_codes.include?(u[:code]) }
   end
 
   def parse_specification(spec)
@@ -48,12 +51,14 @@ module Verdandi
     spec.delete symbol unless spec[symbol]
   end
 
-  def parse_boundaries(spec)
-    spec[:units].select { |unit| not (unit[:boundaries].nil? or unit[:boundaries].empty?) }.map { |unit| {:subject => spec[:subject], :qualification => spec[:qualification], :awarding_body => spec[:awarding_body], :base => spec[:base], :code => unit[:code], :title => unit[:title], :boundaries => unit[:boundaries] } }
+  def parse_boundaries_from_units(spec)
+    spec[:units].select { |unit| not (unit[:boundaries].nil? or unit[:boundaries].empty?) or (unit[:sub_units].nil? ? false : unit[:sub_units].any? { |su| not (su[:boundaries].nil? or su[:boundaries].empty?) } ) }.map { |unit| {:subject => spec[:subject], :qualification => spec[:qualification], :awarding_body => spec[:awarding_body], :base => spec[:base], :code => unit[:code], :title => unit[:title], :boundaries => unit[:boundaries], :sub_units => unit[:sub_units].nil? ? [] : unit[:sub_units].map { |su| {:title => su[:title], :code => su[:code], :boundaries => su[:boundaries] } } } }
+    #spec[:units].select { |unit| not (unit[:boundaries].nil? or unit[:boundaries].empty?) }.map { |unit| {:subject => spec[:subject], :qualification => spec[:qualification], :awarding_body => spec[:awarding_body], :base => spec[:base], :code => unit[:code], :title => unit[:title], :boundaries => unit[:boundaries] } }
   end
 
-  def parse_exams(spec)
-    spec[:units].select { |unit| not (unit[:exams].nil? or unit[:exams].empty?) }.map { |unit| {:subject => spec[:subject], :qualification => spec[:qualification], :awarding_body => spec[:awarding_body], :base => spec[:base], :code => unit[:code], :title => unit[:title], :exams => unit[:exams] } }
+  def parse_exams_from_units(spec)
+    spec[:units].select { |unit| not (unit[:exams].nil? or unit[:exams].empty?) or (unit[:sub_units].nil? ? false : unit[:sub_units].any? { |su| not (su[:exams].nil? or su[:exams].empty?) } ) }.map { |unit| {:subject => spec[:subject], :qualification => spec[:qualification], :awarding_body => spec[:awarding_body], :base => spec[:base], :code => unit[:code], :title => unit[:title], :exams => unit[:exams], :sub_units => unit[:sub_units].nil? ? [] : unit[:sub_units].map { |su| {:title => su[:title], :code => su[:code], :exams => su[:exams] } } } }
+    #spec[:units].select { |unit| not (unit[:exams].nil? or unit[:exams].empty?) }.map { |unit| {:subject => spec[:subject], :qualification => spec[:qualification], :awarding_body => spec[:awarding_body], :base => spec[:base], :code => unit[:code], :title => unit[:title], :exams => unit[:exams] } }
   end
 end
 
@@ -76,7 +81,17 @@ class Verdandi::ParseUnit
   def get_boundaries_details
     results = MONGO["raw_boundaries"].find('boundaries.code' => @code)
     if results.count > 0
-      @boundaries ||= results.map { |b| [b["year"], b["boundaries"].select { |c| c["code"] == @code }.first] }.map { |year, boundaries| {:season => year, :boundaries => boundaries["grades"], :max_scaled_mark => boundaries["max_scaled_mark"] } }
+      right_results = results.map { |b| [b["year"], b["boundaries"].select { |c| c["code"] == @code }.first] }
+
+      su_results = right_results.select { |y, b| not (b["sub_units"].nil? or b["sub_units"].empty?) }
+      if su_results.empty?
+        @sub_units = []
+      else
+        su_codes = su_results.map { |y, b| b["sub_units"].map { |su| su["code"] } }.flatten.uniq
+        @sub_units = su_codes.map { |code| su_results.map { |y, b| [y, b["sub_units"].select { |su| su["code"] == code }] }.select { |d, e| not (e.nil? or e.empty?) } }.map { |su| { :title => su[0][1][0]["title"], :code => su[0][1][0]["code"], :boundaries => su.map { |suu| {:season => suu[0], :max_scaled_mark => suu[1][0]["max_scaled_mark"], :boundaries => suu[1][0]["grades"] } } } }
+      end
+
+      @boundaries = right_results.map { |year, boundaries| {:season => year, :boundaries => boundaries["grades"], :max_scaled_mark => boundaries["max_scaled_mark"] } }
 
       one_result = MONGO["raw_boundaries"].find_one('boundaries.code' => @code)
       @qualification ||= one_result['qualification']
@@ -95,6 +110,8 @@ class Verdandi::ParseUnit
       @awarding_body ||= one_result['awarding_body']
       @subject ||= one_result['subject']
     end
+
+    @sub_units.map! { |unit| add_sub_unit_exams_details unit } unless @sub_units.nil?
   end
 
   def generate_unit_hash
@@ -104,6 +121,7 @@ class Verdandi::ParseUnit
       :title => @title,
       :boundaries => @boundaries,
       :awarding_body => @awarding_body,
+      :sub_units => @sub_units,
       :subject => @subject,
       :exams => @exams
     }
@@ -113,5 +131,15 @@ class Verdandi::ParseUnit
   protected
   def parse_qualification(qualification)
     QUALIFICATION_MAPPINGS.include?(qualification) ? QUALIFICATION_MAPPINGS[qualification] : qualification
+  end
+
+  def add_sub_unit_exams_details(unit)
+    results = MONGO["raw_exams"].find('exam_code' => unit[:code])
+    if results.count > 0
+      unit[:exams] = results.map { |e| {:session => e["session"], :duration => e["duration"], :date => e["date"], :start_time => e["start_time"] } } 
+      @subject ||= MONGO["raw_exams"].find_one('exam_code' => unit[:code])['subject']
+    end
+
+    unit
   end
 end

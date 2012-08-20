@@ -9,4 +9,5 @@ class Verdandi::Boundary
   field "awarding_body", type: String
   field "base", type: String
   field "boundaries", type: Array
+  field "sub_units", type: Array
 end

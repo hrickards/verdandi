@@ -18,15 +18,36 @@ module Verdandi
       parser = BoundariesParser.new file
       results = parser.parse
 
+      # Embed nested units into their parents
+      results[:boundaries] = embed_nested_units results[:boundaries]
+
       # Insert the results into Mongo
       MONGO['raw_boundaries'].insert results
     end
+  end
+
+  protected
+  def embed_nested_units(units)
+    # Swap the select and map for recursive, but slower, nesting
+    units.select { |unit| not unit[:parent_code] }.map { |unit| embed_nested_units_for_parent(unit, units) }
+  end
+
+  def embed_nested_units_for_parent(parent, units)
+    nested_units = units.find_all { |unit| unit[:parent_code] == parent[:code] }
+    parent[:sub_units] = nested_units.map { |unit| remove_parent_code unit } unless nested_units.empty?
+
+    parent
+  end
+
+  def remove_parent_code(unit)
+    unit.delete :parent_code
+    unit
   end
 end
 
 class Verdandi::BoundariesParser
   # Matches all valid boundary lines
-  PARSE_REGEXP = /^(\w+) ((1?\d?[^\d]+1?\d? )+)(([\d-]* )*[\d-]+)/
+  PARSE_REGEXP = /^([\w\/]+) ((1?\d?[^\d]+1?\d? )+)(([\d-]* )*[\d-]+)/
   # Anything matching this is not a valid boundary line
   COPY_REGEXP = /^(Unit)|(The Assessment and Qualifications Alliance)|(Copyright)|(Version)|(and a registered charity)|(Registered address)|(Published)/
   # Anything matching this is not a grade name
@@ -121,9 +142,17 @@ class Verdandi::BoundariesParser
     marks = parse_marks marks
 
     max_scaled_mark = marks.shift
-    grades = zip_grades marks
+    grades, nested = zip_grades marks
 
-    {:code => code, :title => title, :max_scaled_mark => max_scaled_mark, :grades => grades}
+    details_hash = {:code => code, :title => title, :max_scaled_mark => max_scaled_mark, :grades => grades }
+
+    if nested
+      details_hash[:parent_code] = @last_code
+    else
+      @last_code = code
+    end
+
+    details_hash
   end
 
   # Convert numeric marks to numbers
@@ -140,9 +169,14 @@ class Verdandi::BoundariesParser
   def zip_grades(grades)
     case grades.length
     when @grade_names.length
-      Hash[@grade_names.zip grades]
+      [Hash[@grade_names.zip grades], false]
     when 2
-      Hash[[@grade_names[1], @grade_names[-1]].zip grades]
+      unless @qualification == :a_level
+        puts "Only 2 grades in this boundary, when there should be #{grades.length}"
+        puts "Guessing those grades are #{@grade_names[1]} and #{@grade_names[-1]}, and this is a sub-unit"
+        puts "But that's usually only true for A level boundaries (this is a #{@qualification} exam)"
+      end
+      [Hash[[@grade_names[1], @grade_names[-1]].zip grades], true]
     else
       raise "Hmm... #{grades.length} grades #{grades.length > @grade_names.length ? "seems to be a bit too many" : "doesn't seem to be enough"}"
     end
