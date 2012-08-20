@@ -1,5 +1,6 @@
 class Verdandi::Exam
   include Mongoid::Document
+  store_in collection: 'exams'
 
   field "title", type: String
   field "code", type: String

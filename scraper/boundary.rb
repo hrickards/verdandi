@@ -1,5 +1,6 @@
 class Verdandi::Boundary
   include Mongoid::Document
+  store_in collection: 'boundaries'
 
   field "title", type: String
   field "code", type: String

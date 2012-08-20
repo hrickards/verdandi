@@ -1,5 +1,6 @@
 class Verdandi::Qualification
   include Mongoid::Document
+  store_in collection: 'qualifications'
 
   field "subject", type: String
   field "qualification", type: String
