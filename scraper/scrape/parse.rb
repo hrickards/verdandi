@@ -10,17 +10,32 @@ module Verdandi
     flattened_units.select! { |unit| not (unit[:subject].nil? or unit[:subject].empty?) }
 
     specs = unflatten_units flattened_units
-
     specs = specs.map { |spec| parse_specification spec }
+    specs = add_id specs
 
-    Qualification.delete_all
-    Qualification.collection.insert specs
+    boundaries = specs.map { |spec| parse_boundaries_from_units spec }.flatten.select { |boundaries| not (boundaries.nil? or boundaries.empty?) }
+    boundaries = add_id boundaries
 
-    Boundary.delete_all
-    Boundary.collection.insert specs.map { |spec| parse_boundaries_from_units spec }.flatten.select { |boundaries| not (boundaries.nil? or boundaries.empty?) }
+    exams = specs.map { |spec| parse_exams_from_units spec }.flatten.select { |el| not (el.nil? or el.empty?) }
+    exams = add_id exams
 
-    Exam.delete_all
-    Exam.collection.insert specs.map { |spec| parse_exams_from_units spec }.flatten.select { |exams| not (exams.nil? or exams.empty?) }
+    Tire.index 'qualifications' do
+      delete
+      create
+      import specs
+    end
+
+    Tire.index 'boundaries' do
+      delete
+      create
+      import boundaries
+    end
+
+    Tire.index 'exams' do
+      delete
+      create
+      import exams
+    end
   end
 
   protected
@@ -59,6 +74,10 @@ module Verdandi
   def parse_exams_from_units(spec)
     spec[:units].select { |unit| not (unit[:exams].nil? or unit[:exams].empty?) or (unit[:sub_units].nil? ? false : unit[:sub_units].any? { |su| not (su[:exams].nil? or su[:exams].empty?) } ) }.map { |unit| {:subject => spec[:subject], :qualification => spec[:qualification], :awarding_body => spec[:awarding_body], :base => spec[:base], :code => unit[:code], :title => unit[:title], :exams => unit[:exams], :sub_units => unit[:sub_units].nil? ? [] : unit[:sub_units].map { |su| {:title => su[:title], :code => su[:code], :exams => su[:exams] } } } }
     #spec[:units].select { |unit| not (unit[:exams].nil? or unit[:exams].empty?) }.map { |unit| {:subject => spec[:subject], :qualification => spec[:qualification], :awarding_body => spec[:awarding_body], :base => spec[:base], :code => unit[:code], :title => unit[:title], :exams => unit[:exams] } }
+  end
+
+  def add_id(elements)
+    elements.each_with_index.map { |el, i| el.merge({:id => i}) }
   end
 end
 
