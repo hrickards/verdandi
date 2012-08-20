@@ -130,7 +130,7 @@ class Verdandi::ParseUnit
   def generate_unit_hash
     unit_hash = {
       :code => @code,
-      :qualification => @qualification,
+      :qualification => parse_qualification_level(@qualification),
       :title => @title,
       :boundaries => @boundaries,
       :awarding_body => @awarding_body,
@@ -162,5 +162,13 @@ class Verdandi::ParseUnit
 
   def parse_boundary_season(season)
     season.to_s.gsub("_", " ").capitalize.gsub(/(June)|(July)/, "Summer")
+  end
+
+  def parse_qualification_level(qualification)
+    qualification = qualification.to_s.gsub("_", " ").split " "
+    qualification.map! { |word| word.capitalize }
+    qualification[0].upcase!
+
+    qualification.join " "
   end
 end
