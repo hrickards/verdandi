@@ -19,23 +19,17 @@ module Verdandi
     exams = specs.map { |spec| parse_exams_from_units spec }.flatten.select { |el| not (el.nil? or el.empty?) }
     exams = add_id exams
 
-    Tire.index 'qualifications' do
-      delete
-      create
-      import specs
-    end
+    Qualification.index.delete
+    Boundary.index.delete
+    Exam.index.delete
+    
+    specs.each { |spec| Qualification.create spec }
+    boundaries.each { |boundary| Boundary.create boundary }
+    exams.each { |exam| Exam.create exam }
 
-    Tire.index 'boundaries' do
-      delete
-      create
-      import boundaries
-    end
-
-    Tire.index 'exams' do
-      delete
-      create
-      import exams
-    end
+    Qualification.index.refresh
+    Boundary.index.refresh
+    Exam.index.refresh
   end
 
   protected
