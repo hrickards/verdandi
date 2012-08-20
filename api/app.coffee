@@ -66,6 +66,9 @@ elasticResponse = (request, response, index_name, type_name) ->
       hits['hits'] = hits['hits'].map (hit) ->
         delete hit['_index']
         delete hit['_type']
+        if hit['_source']
+          hit['fields'] = hit['_source']
+          delete hit['_source']
         hit
 
       response.send hits
