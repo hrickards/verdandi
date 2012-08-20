@@ -12,10 +12,15 @@ API
 ---
 A pretty simple node app in `api`, which can be run with `node server.js`.
 Currently consists of the following endpoints (all GET):
-* `/api/qualifications` - a list of qualifications. Takes `offset` and `limit` (do what you'd expect) as parameters.
-* `/api/qualifications/:id` - more information about a qualification.
-* `/api/boundaries` - a list of boundaries. Again takes `offset` and `limit`.
-* `/api/exams` - a list of exams. Yet again takes `offset` and `limit`.
+* `/api/qualifications` - a list of qualifications/specifications.
+* `/api/boundaries` - a list of boundaries for all units.
+* `/api/exams` - a list of exams for all units.
+
+All three endpoints can be filtered by passing in the following parameters:
+* `from` - a number to offset all results by (for pagination). Defaults to 0.
+* `size` - the number of results to return. Defaults to 10.
+* `fields` - comma separated list of fields to return. Defaults to all fields.
+* `query` - a string to search for, using ElasticSearch syntax.
 
 Frontend
 --------
