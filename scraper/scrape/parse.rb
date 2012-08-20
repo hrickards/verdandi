@@ -33,21 +33,22 @@ module Verdandi
   end
 
   protected
-  def unflatten_units(unflattened_units)
-    subjects = unflattened_units.map { |u| u[:subject] }.uniq
-    subjects.map { |s| {:subject => s, :units => find_units(unflattened_units, s) } }
+  def unflatten_units(flattened_units)
+    subjects_aws = flattened_units.map { |u| u[:subject] }.uniq.map { |s| flattened_units.select { |u| not u[:awarding_body].nil? }.select { |u| u[:subject] == s }.map { |u| [s, u[:awarding_body]] }.uniq }.flatten(1)
+
+    subjects_aws.map { |s, aw| {:subject => s, :awarding_body => aw, :units => find_units(flattened_units, s, aw) } }
   end
 
-  def find_units(units, s)
-    subject_units = units.find_all { |u| u[:subject] == s }
+  def find_units(units, s, aw)
+    subject_units = units.find_all { |u| u[:subject] == s and u[:awarding_body] == aw }
 
     sub_unit_codes = subject_units.map { |unit| unit[:sub_units].nil? ? [] : unit[:sub_units].map { |su| su[:code] } }.flatten
     subject_units.select { |u| not sub_unit_codes.include?(u[:code]) }
   end
 
   def parse_specification(spec)
-    %w{qualification awarding_body}.each { |s| move_out_of_units spec, s.to_sym }
-    spec[:units].map { |unit| unit.delete :subject }
+    %w{qualification}.each { |s| move_out_of_units spec, s.to_sym }
+    %w{subject awarding_body}.each { |s| spec[:units].each { |unit| unit.delete s.to_sym } }
     spec[:base] = MONGO['raw_subjects'].find_one(:name => spec[:subject])["base"]
 
     spec
@@ -120,8 +121,8 @@ class Verdandi::ParseUnit
       one_result = MONGO["raw_exams"].find_one('exam_code' => @code)
       @qualification ||= parse_qualification one_result['qualification']
       @title ||= one_result['title']
-      @awarding_body ||= one_result['awarding_body']
-      @subject ||= one_result['subject']
+      @awarding_body = one_result['awarding_body']
+      @subject = one_result['subject']
     end
 
     @sub_units.map! { |unit| add_sub_unit_exams_details unit } unless @sub_units.nil?
