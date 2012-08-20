@@ -1,11 +1,11 @@
-express       = require 'express'
-path          = require 'path'
-models        = require './models.coffee'
+express              = require 'express'
+ElasticSearchClient  = require 'elasticsearchclient'
 
-Qualification = models.Qualification
-Boundary      = models.Boundary
-Exam          = models.Exam
+serverOptions =
+  host: 'localhost',
+  port: 9200
 
+elasticSearch = new ElasticSearchClient(serverOptions)
 
 app = module.exports = express()
 
@@ -24,32 +24,69 @@ app.configure 'development', ->
 app.configure 'production', ->
   app.use express.errorHandler()
 
+# -----------------------------------------------------------------
+# Helpers
+# -----------------------------------------------------------------
+buildQuery = (request) ->
+  from = request.query["from"]
+  from = 0 unless from?
+
+  size = request.query["size"]
+  size = 10 unless size?
+
+  fields = request.query["fields"]
+  fields = [fields] if fields? and typeof(fields) == "string"
+
+  query = request.query["query"]
+  query = "*" unless query?
+
+  search_query = {
+    from           : from,
+    size           : size,
+    query          : {
+      query_string : {
+        query      : query
+      }
+    }
+  }
+  search_query["fields"] = fields if fields?
+
+  search_query
+
+elasticResponse = (request, response, index_name, type_name) ->
+  query = buildQuery request
+
+  elasticSearch.search(index_name, type_name, query).on('data', (data) ->
+    data = JSON.parse(data)
+    if data['error']
+      response.send data
+    else
+      hits = data['hits']
+      hits['hits'] = hits['hits'].map (hit) ->
+        delete hit['_index']
+        delete hit['_type']
+        hit
+
+      response.send hits
+  ).on('done', ->
+    return 0
+  ).on('error', (error) ->
+    response.send error
+  ).exec()
+
 
 # -----------------------------------------------------------------
 # Routes
 # -----------------------------------------------------------------
 
 app.get '/api/qualifications', (request, response) ->
-  offset = if request.query["offset"]? then request.query["offset"] else 0
-  limit = if request.query["limit"]? then request.query["limit"] else 5
-  Qualification.find {}, 'subject qualification awarding_body base', { skip: offset, limit: limit }, (error, qualifications) ->
-    response.send qualifications
-
-app.get '/api/qualifications/:id', (request, response) ->
-  Qualification.findById request.param('id'), (error, qualification) ->
-    response.send qualification
+  elasticResponse request, response, 'qualifications', 'qualification'
 
 app.get '/api/boundaries', (request, response) ->
-  offset = if request.query["offset"]? then request.query["offset"] else 0
-  limit = if request.query["limit"]? then request.query["limit"] else 5
-  Boundary.find {}, null, { skip: offset, limit: limit }, (error, boundaries) ->
-    response.send boundaries
+  elasticResponse request, response, 'boundaries', 'boundary'
 
 app.get '/api/exams', (request, response) ->
-  offset = if request.query["offset"]? then request.query["offset"] else 0
-  limit = if request.query["limit"]? then request.query["limit"] else 5
-  Exam.find {}, null, { skip: offset, limit: limit }, (error, exams) ->
-    response.send exams
+  elasticResponse request, response, 'exams', 'exam'
 
 
 # -----------------------------------------------------------------
