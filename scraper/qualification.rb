@@ -1,4 +1,4 @@
-class Verdandi::Qualification
+class Qualification
   include Tire::Model::Persistence
 
   property :subject

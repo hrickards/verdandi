@@ -1,4 +1,4 @@
-class Verdandi::Boundary
+class Boundary
   include Tire::Model::Persistence
   
   property :subject

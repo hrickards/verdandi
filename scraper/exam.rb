@@ -1,4 +1,4 @@
-class Verdandi::Exam
+class Exam
   include Tire::Model::Persistence
   
   property :subject
