@@ -1,1 +1,4 @@
 api/node_modules
+web/.sass-cache
+web/css/.sass-cache
+web/.stylesheets-cache

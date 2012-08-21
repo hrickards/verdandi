@@ -1,0 +1,23 @@
+// ---------------------------------------------------------------------------
+// Imports
+
+@import "base";
+
+/* -------------------------------------------------------------------------*/
+/* Layout */
+
+#page {
+  @include container;
+  @include susy-grid-background;
+
+  header, footer { clear: both; }
+
+  #search {
+    @include prefix(3);
+    @include span-columns(6);
+    @include suffix(3);
+    text-align: center;
+
+    input#search-box { width: 100%; }
+  }
+}
