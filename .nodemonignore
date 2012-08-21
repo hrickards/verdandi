@@ -1,0 +1,8 @@
+/scraper/*
+/web/*
+/.git/*
+LICENSE
+Procfile
+README.md
+api/*.swp
+api/*.un~
