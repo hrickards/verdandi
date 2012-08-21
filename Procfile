@@ -1,2 +1,3 @@
 api: node api/server.js 3000
-web: bash -c "cd web && stasis -d 3001"
+web: rackup web/config.ru -p 3001
+web_assets: bash -c "cd web && rake"

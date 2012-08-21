@@ -1,0 +1,12 @@
+task :copy_assets do
+  system "rm -rf public/*"
+  system "mkdir public/js"
+  system "cp *.html public/"
+  system "cp js/*.js public/js/"
+  system "compass compile --quiet"
+  system "coffee -o public/js --compile js/*.coffee &> /dev/null"
+end
+
+task :default do
+  system "./watch.sh"
+end
