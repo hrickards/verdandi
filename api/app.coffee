@@ -60,7 +60,7 @@ elasticResponse = (request, response, index_name, type_name) ->
   elasticSearch.search(index_name, type_name, query).on('data', (data) ->
     data = JSON.parse(data)
     if data['error']
-      response.send data
+      response.json data
     else
       hits = data['hits']
       hits['hits'] = hits['hits'].map (hit) ->
@@ -71,11 +71,11 @@ elasticResponse = (request, response, index_name, type_name) ->
           delete hit['_source']
         hit
 
-      response.send hits
+      response.json hits
   ).on('done', ->
     return 0
   ).on('error', (error) ->
-    response.send error
+    response.json error
   ).exec()
 
 
