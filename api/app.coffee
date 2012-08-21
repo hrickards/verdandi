@@ -83,6 +83,11 @@ elasticResponse = (request, response, index_name, type_name) ->
 # Routes
 # -----------------------------------------------------------------
 
+app.all '/*', (request, response, next) ->
+  response.header "Access-Control-Allow-Origin", "*"
+  response.header "Access-Control-Allow-Headers", "X-Requested-With"
+  next()
+
 app.get '/api/qualifications.json', (request, response) ->
   elasticResponse request, response, 'qualifications', 'qualification'
 
