@@ -23,6 +23,13 @@
   -webkit-background-clip: content-box;
   -moz-background-clip: content-box;
   background-clip: content-box;
+  /*#search {*/
+  /*@include prefix(3);*/
+  /*@include span-columns(6);*/
+  /*@include suffix(3);*/
+  /*text-align: center;*/
+  /*input#search-box { width: 100%; }*/
+  /*}*/
 }
 /* line 38, ../../../../../../../usr/local/rvm/gems/ruby-1.9.3-p194/gems/compass-0.12.2/frameworks/compass/stylesheets/compass/utilities/general/_clearfix.scss */
 #page:after {
@@ -33,18 +40,4 @@
 /* line 13, ../../css/screen.scss */
 #page header, #page footer {
   clear: both;
-}
-/* line 15, ../../css/screen.scss */
-#page #search {
-  padding-left: 25.42373%;
-  width: 49.15254%;
-  float: left;
-  margin-right: 1.69492%;
-  display: inline;
-  padding-right: 25.42373%;
-  text-align: center;
-}
-/* line 21, ../../css/screen.scss */
-#page #search input#search-box {
-  width: 100%;
 }
