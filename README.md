@@ -12,9 +12,9 @@ API
 ---
 A pretty simple node app in `api`, which can be run with `node server.js`.
 Currently consists of the following endpoints (all GET):
-* `/api/qualifications` - a list of qualifications/specifications.
-* `/api/boundaries` - a list of boundaries for all units.
-* `/api/exams` - a list of exams for all units.
+* `/api/qualifications.json` - a list of qualifications/specifications.
+* `/api/boundaries.json` - a list of boundaries for all units.
+* `/api/exams.json` - a list of exams for all units.
 
 All three endpoints can be filtered by passing in the following parameters:
 * `from` - a number to offset all results by (for pagination). Defaults to 0.

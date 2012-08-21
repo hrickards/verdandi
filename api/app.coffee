@@ -83,13 +83,13 @@ elasticResponse = (request, response, index_name, type_name) ->
 # Routes
 # -----------------------------------------------------------------
 
-app.get '/api/qualifications', (request, response) ->
+app.get '/api/qualifications.json', (request, response) ->
   elasticResponse request, response, 'qualifications', 'qualification'
 
-app.get '/api/boundaries', (request, response) ->
+app.get '/api/boundaries.json', (request, response) ->
   elasticResponse request, response, 'boundaries', 'boundary'
 
-app.get '/api/exams', (request, response) ->
+app.get '/api/exams.json', (request, response) ->
   elasticResponse request, response, 'exams', 'exam'
 
 
