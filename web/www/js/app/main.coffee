@@ -18,6 +18,17 @@ define [
 
   class Qualifications extends Backbone.Collection
     model: Qualification
+    url: ->
+      "http://localhost:3000/api/qualifications.json?query=#{@query}"
+    parse: (resp) ->
+      _.map resp.hits, (qualification) ->
+        qualification.fields.id = qualification.id
+        qualification.fields
+    search: (query) ->
+      @query = query
+      @fetch
+        success: =>
+          @trigger "change"
 
   class QualificationView extends Marionette.ItemView
     template: qualificationTemplate
@@ -25,11 +36,17 @@ define [
     className: 'qualification'
 
   class QualificationsView extends Marionette.CompositeView
+    initialize: ->
+      @collection = new Qualifications
+      @collection.on 'change', =>
+        @render()
+
+      @collection.search 'Physics'
+
     template: qualificationsTemplate
     tagName: 'div'
     id: 'qualifications'
     itemView: QualificationView
-    collection: new Qualifications([new Qualification({subject: 'foo'}), new Qualification({subject: 'barbaz'})])
 
   App.addInitializer (options) ->
     qualificationsView = new QualificationsView
