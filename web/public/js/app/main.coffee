@@ -59,7 +59,9 @@ define [
   class QualificationsView extends Marionette.CompositeView
     initialize: ->
       @collection = new Qualifications
-      @collection.on 'change', => @render()
+      @collection.on 'change', =>
+        $('.qualification')[0].click() unless @itemClicked
+        @render()
       App.vent.on 'qualification:searched', => @collection.search $('#search-box').val()
       @collection.find()
     events:
@@ -67,7 +69,9 @@ define [
     template: qualificationsTemplate
     tagName: 'div'
     itemView: QualificationView
+    itemClicked: false
     select: (event) ->
+      @itemClicked = true
       id = $(event.srcElement).data 'id'
       qualification =  _.first _.filter(@collection.models, (q) -> q.id == id)
       App.vent.trigger 'qualification:clicked', qualification

@@ -1,0 +1,61 @@
+@import "susy";
+
+@function calc-em($target-px) {
+  @return $target-px / 16px * 1em;
+}
+
+$total-columns: 12;
+$column-width: 4em;
+$gutter-width: 1em;
+$grid-padding: $gutter-width;
+
+$header-bg: green;
+$header-fg: black;
+
+$footer-bg: #eeeeee;
+$footer-fg: black;
+
+body {
+  margin: 0;
+}
+
+header, footer {
+  float: left;
+  min-width: 100%;
+  padding: calc-em(2px) calc-em(5px) calc-em(2px) calc-em(5px);
+}
+
+header {
+  background-color: $header-bg;
+  color: $header-fg;
+}
+
+footer {
+  text-align: center;
+  background-color: $footer-bg;
+  color: $footer-fg;
+}
+
+#app {
+  @include container;
+  @include susy-grid-background;
+
+  #search {
+    @include prefix(3);
+    @include span-columns(6);
+    @include suffix(3);
+    padding-bottom: calc-em(10px);
+
+    #search-box { width: 100% }
+  }
+
+  #results {
+    @include span-columns(4);
+    margin-right: 0;
+  }
+  
+  #detailed {
+    @include span-columns(8);
+    h2 { margin: 0 }
+  }
+}
