@@ -17,6 +17,15 @@ define [
   Marionette.Renderer.render = (template, data) ->
     Handlebars.compile(template)(data)
 
+  Handlebars.registerHelper 'humanifyBoundaries', (boundaries) ->
+    _.map(boundaries, (number, grade) ->
+      if grade == "a_star"
+        grade = "A*"
+      else
+        grade = grade.charAt(0).toUpperCase() + grade.slice(1)
+      "#{grade}: #{number}"
+    ).join ", "
+
   class Qualification extends Backbone.Model
 
   class Qualifications extends Backbone.Collection

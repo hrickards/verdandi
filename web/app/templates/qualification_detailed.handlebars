@@ -1,2 +1,30 @@
 <h2>Details</h2>
-{{subject}}
+<div class="brief-details">
+{{subject}} ({{base}})<br>
+{{awarding_body}}<br>
+{{qualification}}
+</div>
+
+<div class="units">
+  Units:
+  {{#units}}
+    <div class="unit">
+      {{code}} - {{title}}<br>
+      {{#boundaries}}
+        {{season}} boundaries (max. scaled mark {{max_scaled_mark}}) - {{humanifyBoundaries boundaries}}<br>
+      {{/boundaries}}
+      {{#exams}}
+        {{season}} - {{date}}, {{start_time}} - {{duration}} long<br>
+      {{/exams}}
+      {{#sub_units}}
+        SUBUNIT {{code}} - {{title}}<br>
+        {{#boundaries}}
+          {{season}} boundaries (max. scaled mark {{max_scaled_mark}}) - {{humanifyBoundaries boundaries}}<br>
+        {{/boundaries}}
+        {{#exams}}
+          {{season}} - {{date}}, {{start_time}} - {{duration}} long<br>
+        {{/exams}}
+      {{/sub_units}}
+    </div>
+  {{/units}}
+</div>
