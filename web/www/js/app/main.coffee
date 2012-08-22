@@ -4,12 +4,15 @@ define [
   'backbone',
   'marionette',
   'handlebars',
+  'text!templates/qualifications_layout.handlebars',
   'text!templates/qualifications.handlebars',
   'text!templates/qualification.handlebars'
-], ($, _, Backbone, Marionette, Handlebars, qualificationsTemplate, qualificationTemplate) ->
+  'text!templates/qualifications_search.handlebars'
+], ($, _, Backbone, Marionette, Handlebars, qualificationsLayoutTemplate, qualificationsTemplate, qualificationTemplate, qualificationsSearchTemplate) ->
   App = new Marionette.Application
   App.addRegions
     mainRegion: '#app'
+    searchRegion: '#search'
 
   Backbone.Marionette.Renderer.render = (template, data) ->
     Handlebars.compile(template)(data)
@@ -36,8 +39,13 @@ define [
       @fetch
         data: search_query
         processData: true
-        success: =>
-          @trigger "change"
+        success: => @trigger "change"
+
+  class QualificationsLayout extends Marionette.Layout
+    template: qualificationsLayoutTemplate
+    regions:
+      search: "#search"
+      results: "#results"
 
   class QualificationView extends Marionette.ItemView
     template: qualificationTemplate
@@ -47,20 +55,26 @@ define [
   class QualificationsView extends Marionette.CompositeView
     initialize: ->
       @collection = new Qualifications
-      @collection.on 'change', =>
-        @render()
-
-      #@collection.search('Physics')
+      @collection.on 'change', => @render()
+      App.vent.on 'search:entered', => @collection.search $('#search-box').val()
       @collection.find()
-
     template: qualificationsTemplate
     tagName: 'div'
-    id: 'qualifications'
     itemView: QualificationView
 
+  class QualificationsSearchView extends Marionette.ItemView
+    template: qualificationsSearchTemplate
+    tagName: 'div'
+    events:
+      'input #search-box': 'search'
+    search: -> App.vent.trigger 'search:entered'
+
   App.addInitializer (options) ->
-    qualificationsView = new QualificationsView
-    App.mainRegion.show qualificationsView
+    qualificationsLayout = new QualificationsLayout
+    App.mainRegion.show qualificationsLayout
+
+    qualificationsLayout.results.show new QualificationsView
+    qualificationsLayout.search.show new QualificationsSearchView
 
   $ ->
     App.start()
