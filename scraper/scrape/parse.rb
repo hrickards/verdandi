@@ -110,6 +110,8 @@ class Verdandi::ParseUnit
       one_result = MONGO["raw_boundaries"].find_one('boundaries.code' => @code)
       @qualification ||= one_result['qualification']
       @title ||= one_result["boundaries"].select { |c| c["code"] == @code }.first["title"]
+      # TODO: When boundaries aren't just AQA, this REALLY REALLY REALLY needs to be changed
+      @awarding_body ||= "AQA"
     end
   end
 
@@ -121,7 +123,7 @@ class Verdandi::ParseUnit
       one_result = MONGO["raw_exams"].find_one('exam_code' => @code)
       @qualification ||= parse_qualification one_result['qualification']
       @title ||= one_result['title']
-      @awarding_body = one_result['awarding_body']
+      @awarding_body ||= one_result['awarding_body']
       @subject = one_result['subject']
     end
 
