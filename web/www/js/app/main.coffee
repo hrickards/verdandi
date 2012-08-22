@@ -19,14 +19,23 @@ define [
   class Qualifications extends Backbone.Collection
     model: Qualification
     url: ->
-      "http://localhost:3000/api/qualifications.json?query=#{@query}"
+      "http://localhost:3000/api/qualifications.json"
     parse: (resp) ->
       _.map resp.hits, (qualification) ->
         qualification.fields.id = qualification.id
         qualification.fields
     search: (query) ->
       @query = query
+      @find()
+    find: ->
+      search_query =
+        query: @query
+      _.each search_query, (value, key) ->
+        if (value == null || value == undefined || value == '')
+          delete search_query[key]
       @fetch
+        data: search_query
+        processData: true
         success: =>
           @trigger "change"
 
@@ -41,7 +50,8 @@ define [
       @collection.on 'change', =>
         @render()
 
-      @collection.search 'Physics'
+      #@collection.search('Physics')
+      @collection.find()
 
     template: qualificationsTemplate
     tagName: 'div'
