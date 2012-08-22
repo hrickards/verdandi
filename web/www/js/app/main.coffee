@@ -13,9 +13,8 @@ define [
   App = new Marionette.Application
   App.addRegions
     mainRegion: '#app'
-    searchRegion: '#search'
 
-  Backbone.Marionette.Renderer.render = (template, data) ->
+  Marionette.Renderer.render = (template, data) ->
     Handlebars.compile(template)(data)
 
   class Qualification extends Backbone.Model
