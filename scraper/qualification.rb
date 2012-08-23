@@ -2,11 +2,19 @@ class Qualification
   include Tire::Model::Persistence
 
   property :subject
-  property :qualification
-  property :awarding_body
-  property :base
-  property :units
   property :id,
            :type => 'integer',
            :index => 'not_analyzed'
+
+  property :qualification,
+           :type => 'string'
+
+  property :awarding_body,
+           :type => "string"
+
+  property :base,
+           :type => "string"
+
+  property :units,
+           :type => "object"
 end
