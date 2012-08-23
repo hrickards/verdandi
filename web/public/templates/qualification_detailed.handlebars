@@ -1,30 +1,72 @@
 <h2>Details</h2>
-<div class="brief-details">
-{{subject}} ({{base}})<br>
-{{awarding_body}}<br>
-{{qualification}}
-</div>
+<ul>
+  <li>{{subject}} ({{base}})</li>
+  <li>{{awarding_body}}</li>
+  <li>{{qualification}}</li>
 
-<div class="units">
-  Units:
-  {{#units}}
-    <div class="unit">
-      {{code}} - {{title}}<br>
-      {{#boundaries}}
-        {{season}} boundaries (max. scaled mark {{max_scaled_mark}}) - {{humanifyBoundaries boundaries}}<br>
-      {{/boundaries}}
-      {{#exams}}
-        {{season}} - {{date}}, {{start_time}} - {{duration}} long<br>
-      {{/exams}}
-      {{#sub_units}}
-        SUBUNIT {{code}} - {{title}}<br>
-        {{#boundaries}}
-          {{season}} boundaries (max. scaled mark {{max_scaled_mark}}) - {{humanifyBoundaries boundaries}}<br>
-        {{/boundaries}}
-        {{#exams}}
-          {{season}} - {{date}}, {{start_time}} - {{duration}} long<br>
-        {{/exams}}
-      {{/sub_units}}
-    </div>
-  {{/units}}
-</div>
+  <li>
+    Units:<br>
+    <ul>
+      {{#units}}
+        <li>{{code}} - {{title}}<br>
+          <ul>
+            {{#if boundaries}}
+              <li>
+                Boundaries:<br>
+                <ul>
+                  {{#boundaries}}
+                    <li>{{season}} (max. scaled mark {{max_scaled_mark}}) - {{humanifyBoundaries boundaries}}</li>
+                  {{/boundaries}}
+                </ul>
+              </li>
+            {{/if}}
+            {{#if exams}}
+              <li>
+                Exams:<br>
+                <ul>
+                  {{#exams}}
+                    <li>{{season}} - {{date}}, {{start_time}} - {{duration}} long</li>
+                  {{/exams}}
+                </ul>
+              </li>
+            {{/if}}
+            {{#if sub_units}}
+              <li>
+                Sub units:<br>
+                <ul>
+                  {{#sub_units}}
+                    <li>
+                      {{code}} - {{title}}<br>
+                      <ul>
+                        {{#if boundaries}}
+                          <li>
+                            Boundaries:<br>
+                            <ul>
+                              {{#boundaries}}
+                                <li>{{season}} (max. scaled mark {{max_scaled_mark}}) - {{humanifyBoundaries boundaries}}</li>
+                              {{/boundaries}}
+                            </ul>
+                          </li>
+                        {{/if}}
+                        {{#if exams}}
+                          <li>
+                            Exams:<br>
+                            <ul>
+                              {{#exams}}
+                                <li>{{season}} - {{date}}, {{start_time}} - {{duration}} long</li>
+                              {{/exams}}
+                            </ul>
+                          </li>
+                        {{/if}}
+                      </ul>
+                    </li>
+                  {{/sub_units}}
+                </ul>
+              </li>
+            {{/if}}
+          </ul>
+        </li>
+      {{/units}}
+    </ul>
+  </li>
+</ul>
