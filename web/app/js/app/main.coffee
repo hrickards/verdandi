@@ -33,9 +33,7 @@ define [
     url: ->
       "http://localhost:3000/api/qualifications.json"
     parse: (resp) ->
-      _.map resp.hits, (qualification) ->
-        qualification.fields.id = qualification._id
-        qualification.fields
+      _.map resp.hits, (qualification) -> qualification.fields
     search: (query) ->
       @query = query
       @find()

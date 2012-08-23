@@ -6,4 +6,7 @@ class Qualification
   property :awarding_body
   property :base
   property :units
+  property :id,
+           :type => 'integer',
+           :index => 'not_analyzed'
 end
