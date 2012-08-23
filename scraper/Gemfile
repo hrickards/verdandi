@@ -11,6 +11,7 @@ gem 'thin'
 gem 'tire'
 gem 'yajl-ruby', :require => 'yajl/json_gem'
 gem 'psych'
+gem 'redis'
 
 group :development do
   gem 'pry'
