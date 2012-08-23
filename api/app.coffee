@@ -43,10 +43,27 @@ buildQuery = (request) ->
     from           : from,
     size           : size,
     query          : {
-      query_string : {
-        query      : query
+      bool: {
+        should: [
+          { text: { "subject": {
+            query: query,
+            boost: 2
+          }}},
+          { text: { "subject.partial": {
+            query: query,
+            boost: 1
+          }}},
+          { text: { "subject.metaphone": {
+            query: query,
+            boost: 1
+          }}},
+          { text: { "subject.partial_metaphone": {
+            query: query
+          }}}
+        ]
       }
-    }
+    },
+    fields: fields
   }
   delete search_query.fields unless (fields? and fields != "")
   delete search_query.query unless(query? and query != "")
