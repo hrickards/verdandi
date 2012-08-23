@@ -22,6 +22,10 @@ module Verdandi
     Qualification.index.delete
     Boundary.index.delete
     Exam.index.delete
+
+    Qualification.create_elasticsearch_index
+    #Boundary.create_elasticsearch_index
+    #Exam.create_elasticsearch_index
     
     specs.each { |spec| Qualification.create spec }
     boundaries.each { |boundary| Boundary.create boundary }
