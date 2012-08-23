@@ -42,9 +42,6 @@ define [
     find: ->
       search_query =
         query: @query
-      _.each search_query, (value, key) ->
-        if (value == null || value == undefined || value == '')
-          delete search_query[key]
       @fetch
         data: search_query
         processData: true

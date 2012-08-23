@@ -36,10 +36,8 @@ buildQuery = (request) ->
 
   fields = request.query["fields"]
   fields = fields.split(",") if fields?
-  fields = [fields] if fields? and typeof(fields) == "string"
 
   query = request.query["query"]
-  query = "*" unless query?
 
   search_query = {
     from           : from,
@@ -50,7 +48,8 @@ buildQuery = (request) ->
       }
     }
   }
-  search_query["fields"] = fields if fields?
+  delete search_query.fields unless (fields? and fields != "")
+  delete search_query.query unless(query? and query != "")
 
   search_query
 
