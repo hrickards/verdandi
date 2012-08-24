@@ -3,6 +3,23 @@
 module Verdandi
   def parse_boundaries
     BoundariesScraper.scrape
+    BoundariesReader.read
+  end
+
+  class BoundariesReader
+    def self.read
+      aqa
+      edexcel
+      ocr
+    end
+
+    def self.aqa
+      pdfs = REDIS.lrange 'aqa_boundary_pdfs', 0, -1
+      pdfs.each do |pdf|
+        File.open('/tmp/boundaries.pdf', 'wb') { |f| f.write pdf }
+        raise "foo"
+      end
+    end
   end
 
   class BoundariesScraper
